@@ -1,0 +1,38 @@
+# Credentials / environment files: examples are safe; local values are not.
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.key
+*.pfx
+secrets/
+
+# Common JS / TS / React Native artifacts
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.expo/
+.expo-shared/
+*.log
+
+# Python / ML artifacts
+__pycache__/
+.pytest_cache/
+.venv/
+*.tflite
+*.onnx
+*.pt
+*.pth
+*.h5
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Confidential source design Word files should be deliberately shared, not committed by default.
+*Design Document*.docx

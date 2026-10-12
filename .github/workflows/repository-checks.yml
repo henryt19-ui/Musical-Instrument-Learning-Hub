@@ -1,0 +1,22 @@
+name: Repository documentation checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Check whitespace and patch formatting
+        run: git show --check --format=short HEAD
+      - name: Confirm required documents
+        shell: bash
+        run: |
+          for f in README.md SETUP.md docs/requirements.md docs/architecture.md docs/api.md docs/data-models.md docs/open-questions.md; do
+            test -s "$f" || { echo "Missing or empty: $f"; exit 1; }
+          done
+          echo "All required design documents are present."
