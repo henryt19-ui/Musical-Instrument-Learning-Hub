@@ -36,3 +36,4 @@ Thumbs.db
 
 # Confidential source design Word files should be deliberately shared, not committed by default.
 *Design Document*.docx
+*.tsbuildinfo
