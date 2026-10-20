@@ -1,0 +1,181 @@
+@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap");
+
+/* Scoped styles for the two October 2026 Legato Figma screens.
+   This intentionally does not change the existing My Instruments/home styles. */
+.legato-ui {
+  --lg-ink: #292140;
+  --lg-muted: #6b6680;
+  --lg-pink: #c2175c;
+  --lg-border: #dbd6e5;
+  color: var(--lg-ink);
+  font: 400 15px/1.5 "Manrope", Arial, sans-serif;
+  box-sizing: border-box;
+}
+.legato-ui *, .legato-ui *::before, .legato-ui *::after { box-sizing: inherit; }
+.legato-ui button, .legato-ui input { font: inherit; }
+.legato-ui button { cursor: pointer; }
+.legato-ui a { color: inherit; text-decoration: none; }
+.legato-ui button:focus-visible, .legato-ui a:focus-visible, .legato-ui input:focus-visible {
+  outline: 3px solid #7759c4; outline-offset: 3px;
+}
+.legato-brand { font: 400 48px/1.1 "Great Vibes", "Brush Script MT", cursive; letter-spacing: -.4px; }
+
+/* MY LIBRARY ------------------------------------------------------------ */
+.legato-library { min-height: 100vh; background: #fafafc; }
+.legato-library-nav {
+  min-height: 78px;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 30%, rgba(0,128,140,.50) 100%),
+    linear-gradient(95deg, #ff8fbf 0%, #ffd46e 32%, #ff9ec9 58%, #8fc7ff 82%, #5c87f0 100%);
+}
+.legato-library-nav-inner {
+  min-height: 78px; max-width: 1240px; margin: auto; padding: 7px 0;
+  display: flex; align-items: center; justify-content: space-between; gap: 30px;
+}
+.legato-library-nav .legato-brand { color: white; text-shadow: 0 2px 14px rgba(61,20,79,.25); }
+.legato-menu { display:flex; align-items:center; gap: 29px; margin-left: auto; color: white; }
+.legato-menu > a, .legato-menu > span { font-weight: 700; font-size: 15px; white-space: nowrap; }
+.legato-menu > span { cursor: default; }
+.legato-menu > a:hover, .legato-menu > a.is-active { text-decoration: underline; text-underline-offset: 3px; }
+.legato-profile {
+  display: inline-flex; align-items: center; gap: 8px; flex: 0 0 auto;
+  height: 46px; padding: 8px 17px 8px 8px; background: #fff;
+  border-radius: 24px; box-shadow: 0 6px 9px rgba(41,20,69,.18);
+  font-size: 15px; font-weight: 700;
+}
+.legato-profile-avatar {
+  display: flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: 15px;
+  background: linear-gradient(135deg, #ffd46e, #ff8fbf);
+  font-weight: 800; font-size: 13px;
+}
+.legato-library-content { max-width: 1144px; min-height: 902px; margin: auto; padding: 32px 0 44px; }
+.legato-library-overview { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.legato-library-title {
+  margin: 0; background: linear-gradient(90deg, #e8214f, #c2175c);
+  background-clip: text; -webkit-background-clip: text; color: transparent;
+  font: 800 44px/1.25 "Syne", Arial, sans-serif; letter-spacing: -.8px;
+}
+.legato-library-subtitle { margin: 7px 0 0; color: var(--lg-muted); font-size: 17px; }
+.legato-tab-switch, .legato-auth-tabs { display: flex; background: #f2f2f7; border-radius: 100px; padding: 6px; }
+.legato-tab-switch { flex: 0 0 auto; height: 55px; width: 254px; }
+.legato-tab-switch button {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  min-width: 0; flex: 1; border: 0; border-radius: 100px; background: transparent;
+  color: #5c5470; font-weight: 600; white-space: nowrap;
+}
+.legato-tab-switch button img { width: 18px; height: 18px; }
+.legato-tab-switch button.selected { color: var(--lg-ink); background: white; box-shadow: 0 4px 6px rgba(61,41,99,.10); font-weight: 700; }
+.legato-roadmaps-section { margin-top: 34px; }
+.legato-section-title { display: table; margin: 0; font: 800 30px/1.28 "Syne", Arial, sans-serif; letter-spacing: -.5px; color: transparent; background-clip: text; -webkit-background-clip: text; }
+.legato-section-title.roadmaps { background-image: linear-gradient(95deg, #d98a00 0%, #e0457a 55%, #9c40d1 100%); }
+.legato-section-title.resources { background-image: linear-gradient(95deg, #1fa83b 0%, #d98a00 55%, #d9301f 100%); }
+.legato-roadmap-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 20px; margin-top: 17px; }
+.legato-roadmap-card { min-height: 192px; padding: 21px 22px 17px; border-radius: 22px; background: white; box-shadow: 0 1px 0 #edebf2, 0 10px 28px rgba(61,41,99,.08); }
+.legato-roadmap-meta { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.legato-roadmap-status { display: inline-flex; align-items: center; height: 27px; padding: 0 10px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.legato-roadmap-status.in-progress { background: #def5e3; color: #1f6b2e; }
+.legato-roadmap-status.not-started { background: #ebe5f2; color: #5c5470; }
+.legato-roadmap-count { color: var(--lg-muted); font-size: 13px; font-weight: 600; white-space: nowrap; }
+.legato-roadmap-card h3 { margin: 14px 0 18px; min-height: 43px; color: var(--lg-ink); font: 800 22px/1.12 "Syne", Arial, sans-serif; letter-spacing: -.3px; }
+.legato-progress-track { width:100%; height:8px; overflow:hidden; border-radius:99px; background:#edebf5; }
+.legato-progress-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg,#ffd46e,#ff8fbf); transition: width .2s; }
+.legato-roadmap-next { margin: 11px 0 0; color: var(--lg-muted); font-size: 14px; }
+.legato-resources-section { margin-top: 33px; }
+.legato-resource-list { display: grid; gap: 12px; margin-top: 17px; }
+.legato-resource-item { min-height: 80px; display: flex; align-items: center; gap: 16px; padding: 14px 18px; background: white; border-radius: 18px; box-shadow: 0 1px 0 #edebf2, 0 8px 22px rgba(61,41,99,.06); }
+.legato-resource-icon { flex: 0 0 52px; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+.legato-resource-icon.video { background: linear-gradient(135deg,#ff8fbf,#e8214f); }
+.legato-resource-icon.article { background: linear-gradient(135deg,#8fc7ff,#5c87f0); }
+.legato-resource-icon.tabs { background: linear-gradient(135deg,#ffd46e,#f59e2b); }
+.legato-resource-icon img { width: 22px; height: 22px; }
+.legato-resource-copy { min-width: 0; flex: 1; }
+.legato-resource-copy h3 { margin: 0; color: var(--lg-ink); font-size:16px; font-weight:700; line-height:1.4; overflow-wrap: anywhere; }
+.legato-resource-copy p { margin: 2px 0 0; color: var(--lg-muted); font-size: 14px; }
+.legato-save-button { flex: 0 0 44px; width:44px; height:44px; display:flex; align-items:center; justify-content:center; border:0; border-radius:50%; background:#f2f2f7; filter:grayscale(1); opacity:.58; }
+.legato-save-button.is-saved { background:#fff5cc; filter:none; opacity:1; }
+.legato-save-button img { width:20px; height:20px; }
+.legato-save-button:hover { transform: scale(1.06); }
+.legato-empty-state { min-height: 83px; display: flex; align-items: center; justify-content: center; flex-wrap:wrap; padding: 20px; border: 1px dashed #dbd6e5; border-radius: 18px; color:var(--lg-muted); text-align:center; }
+.legato-resource-tip { display: flex; align-items: center; justify-content: center; gap: 5px; flex-wrap:wrap; margin-top: 18px; min-height: 67px; padding: 14px 20px; border:1px dashed #dbd6e5; border-radius:18px; color:var(--lg-muted); text-align:center; font-size:15px; }
+.legato-tip-link { color:#c2175c; font-weight:700; }
+.legato-action-message { min-height: 22px; margin: 7px 0 0; text-align:center; color:#5c5470; font-size:13px; }
+.legato-library-footer { min-height: 87px; border-top: 1px solid #edebf2; background: white; }
+.legato-library-footer > div { max-width: 1240px; margin:auto; padding: 21px 0; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.legato-library-footer .legato-brand { color:#c2175c; font-size:30px; }
+.legato-library-footer span { color:var(--lg-muted); font-size:14px; }
+
+/* LOG IN / SIGN UP ------------------------------------------------------- */
+.legato-auth {
+  min-height: 100vh;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 40%, rgba(0,128,140,.55) 100%),
+    linear-gradient(120deg, #ff8fbf 0%, #ffd46e 32%, #ff9ec9 58%, #8fc7ff 82%, #5c87f0 100%);
+}
+.legato-auth-main { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 35px 18px 64px; }
+.legato-auth-logo { color: white !important; font-size: 72px; line-height: 79px; text-shadow: 0 2px 18px rgba(61,20,79,.25); }
+.legato-auth-card { width: 100%; max-width: 460px; min-height: 740px; margin-top: 33px; padding: 32px; background:#fff; border-radius:28px; box-shadow:0 24px 30px rgba(41,20,69,.22); }
+.legato-auth-tabs { width:100%; height:55px; }
+.legato-auth-tabs button { flex:1; border:0; background:transparent; border-radius:99px; color:#5c5470; font-weight:600; }
+.legato-auth-tabs button.selected { color:#292140; background:white; box-shadow:0 4px 6px rgba(61,41,99,.1); font-weight:700; }
+.legato-auth-card h1 { margin:19px 0 0; color:#1f1a2b; font:800 30px/1.3 "Syne", Arial, sans-serif; letter-spacing:-.5px; }
+.legato-auth-description { margin:1px 0 20px; color:var(--lg-muted); font-size:15px; line-height:1.55; }
+.legato-field { display: flex; flex-direction: column; }
+.legato-field + .legato-field { margin-top:12px; }
+.legato-field-label { color:#1f1a2b; font-size:14px; line-height:21px; font-weight:700; }
+.legato-field-hint { color:var(--lg-muted); font-size:14px; line-height:25px; }
+.legato-field input { width:100%; height:49px; margin-top:8px; border:1px solid var(--lg-border); border-radius:14px; outline-offset:1px; padding:0 16px; color:var(--lg-ink); background:white; font-size:15px; }
+.legato-field:has(.legato-field-hint) input { margin-top:7px; }
+.legato-field input::placeholder { color:#757575; opacity:1; }
+.legato-field input:disabled { opacity:1; cursor:not-allowed; background:white; }
+.legato-field input:focus { border-color:#c2175c; }
+.legato-forgot-row { min-height: 34px; display:flex; align-items:center; justify-content:flex-end; padding-top:7px; }
+.legato-text-link { border:0; background:transparent; padding:0; color:var(--lg-pink); font-size:14px; font-weight:600; }
+.legato-text-link:hover, .legato-auth-terms button:hover { text-decoration:underline; }
+.legato-password-hint { font-size:13px; color:var(--lg-muted); }
+.legato-primary-button { width:100%; height:52px; margin-top:6px; border:0; border-radius:26px; background:#c2175c; color:white; font-size:16px; font-weight:700; box-shadow:0 8px 10px rgba(194,23,92,.25); }
+.legato-primary-button:hover { background:#ab1150; }
+.legato-divider { display:flex; align-items:center; gap:12px; margin:16px 0 18px; color:var(--lg-muted); font-size:13px; font-weight:600; }
+.legato-divider::before, .legato-divider::after { content:""; flex:1; height:1px; background:#edebf2; }
+.legato-provider-button { width:100%; height:50px; display:flex; align-items:center; justify-content:center; gap:10px; border:1px solid var(--lg-border); border-radius:25px; background:white; color:var(--lg-ink); font-weight:700; }
+.legato-provider-button:hover { background:#fafafc; }
+.legato-provider-symbol { width:22px; height:22px; display:flex; align-items:center; justify-content:center; border-radius:11px; background:#f2f2f7; color:var(--lg-ink); font-size:12px; font-weight:800; }
+.legato-auth-terms { margin:18px 0 0; text-align:center; color:var(--lg-muted); font-size:12px; }
+.legato-auth-terms button { border:0; background:transparent; padding:0; font-size:inherit; color:var(--lg-ink); font-weight:700; }
+.legato-auth-message { margin:12px 0 0; color:#5c5470; font-size:12px; text-align:center; }
+.legato-back-link { display:inline-block; margin-top:22px; color:white !important; font-size:15px; font-weight:700; text-shadow:0 1px 8px rgba(41,20,69,.3); }
+.legato-back-link:hover { text-decoration:underline; }
+
+@media (max-width: 1260px) {
+  .legato-library-nav-inner, .legato-library-footer > div { padding-left:24px; padding-right:24px; }
+  .legato-library-content { margin-left: max(28px, 5vw); margin-right: max(28px, 5vw); }
+  .legato-menu { gap:18px; }
+}
+@media (max-width: 850px) {
+  .legato-library-nav-inner { flex-wrap:wrap; row-gap:4px; padding:10px 22px; }
+  .legato-library-nav .legato-brand { font-size:40px; }
+  .legato-menu { order:3; flex: 0 0 100%; justify-content:space-between; gap:9px; overflow-x:auto; padding-bottom:8px; }
+  .legato-menu > a, .legato-menu > span { font-size:12px; }
+  .legato-library-content { min-height:unset; }
+  .legato-roadmap-grid { grid-template-columns:1fr; }
+  .legato-roadmap-card h3 { min-height:unset; }
+}
+@media (max-width: 600px) {
+  .legato-library-content { margin:0; padding:30px 18px 46px; }
+  .legato-library-overview { flex-direction:column; align-items:flex-start; gap:19px; }
+  .legato-library-title { font-size:38px; }
+  .legato-library-subtitle { font-size:15px; }
+  .legato-tab-switch { width:min(100%,300px); }
+  .legato-section-title { font-size:27px; }
+  .legato-roadmaps-section { margin-top:27px; }
+  .legato-roadmap-card { padding:18px; }
+  .legato-roadmap-card h3 { font-size:21px; }
+  .legato-resource-item { gap:12px; padding:12px; }
+  .legato-resource-copy h3 { font-size:14px; }
+  .legato-resource-copy p { font-size:12px; }
+  .legato-save-button { flex-basis:38px; width:38px; height:38px; }
+  .legato-library-footer > div { padding:18px; }
+  .legato-auth-main { padding:22px 14px 42px; }
+  .legato-auth-logo { font-size:62px; }
+  .legato-auth-card { margin-top:16px; padding:25px 20px; border-radius:24px; min-height:unset; }
+  .legato-auth-card h1 { font-size:28px; }
+  .legato-auth-description { font-size:14px; }
+}
