@@ -1,17 +1,24 @@
 @import "tailwindcss";
 
+/* Shared font and color tokens used by the Tailwind theme and page styles. */
 @theme {
   --font-hand: "Shadows Into Light Two", cursive;
   --font-serif: "Gelasio", Georgia, serif;
-  --color-rose-header-from: #e38a86;
-  --color-rose-header-to: #b4484a;
+  --font-ui: "Trebuchet MS", Arial, sans-serif;
   --color-ink: #1c1414;
 }
 
+/* Neutral page canvas lets the colorful hero and content cards stand out. */
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: var(--font-serif);
-  color: var(--color-ink);
-  background: linear-gradient(135deg, #e9dfd8 0%, #f4e8dc 55%, #efe1d2 100%);
+  font-family: var(--font-ui);
+  color: #262238;
+  background: #faf9fc;
+}
+
+/* Keep keyboard navigation visible on links against the light card backgrounds. */
+a:focus-visible {
+  outline: 2px solid #db2777;
+  outline-offset: 3px;
 }
