@@ -2,6 +2,8 @@ import Header from "./components/Header";
 import HomeScreen from "./components/HomeScreen";
 import MyLibraryScreen from "./components/MyLibraryScreen";
 import LoginSignupScreen from "./components/LoginSignupScreen";
+import RoadmapScreen from "./components/RoadmapScreen";
+import RoadmapStepScreen from "./components/RoadmapStepScreen";
 import "./styles/legato-screens.css";
 
 // No routing dependency is needed for these two new pages.
@@ -11,6 +13,8 @@ export default function App() {
 
   if (path === "/library") return <MyLibraryScreen />;
   if (path === "/auth" || path === "/login" || path === "/signup") return <LoginSignupScreen />;
+  if (path === "/roadmap") return <RoadmapScreen />;
+  if (path.startsWith("/roadmap/")) return <RoadmapStepScreen />;
 
   // Preserve the existing home screen built by another team member.
   return (
