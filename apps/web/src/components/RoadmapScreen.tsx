@@ -1,17 +1,16 @@
 // apps/web/src/components/RoadmapScreen.tsx
-import React from "react";
 import Header from "./Header";
 
 export default function RoadmapScreen() {
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans">
       <Header />
-      
+
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Breadcrumbs */}
         <nav className="text-sm text-gray-500 mb-6 flex gap-2">
-          <a href="/" className="hover:text-gray-800">Home</a> / 
-          <a href="#" className="hover:text-gray-800">[Instrument]</a> / 
+          <a href="/" className="hover:text-gray-800">Home</a> /
+          <a href="#" className="hover:text-gray-800">[Instrument]</a> /
           <span className="text-gray-800 font-medium">[Roadmap name]</span>
         </nav>
 
@@ -29,7 +28,7 @@ export default function RoadmapScreen() {
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">[n] steps</span>
               <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">About [n] weeks</span>
             </div>
-            
+
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 leading-tight">
               [Instrument]:<br />[Roadmap name]
             </h1>
@@ -66,7 +65,7 @@ export default function RoadmapScreen() {
               The Steps
             </h2>
             <div className="space-y-4">
-              
+
               {/* Step 1 - Completed */}
               <div className="bg-white p-5 rounded-2xl flex items-center gap-5 shadow-sm border border-gray-100">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
@@ -125,7 +124,7 @@ export default function RoadmapScreen() {
             <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-blue-500 mb-6">
               About
             </h2>
-            
+
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">What you'll learn</h3>
               <ul className="text-sm text-gray-600 space-y-2 mb-6">

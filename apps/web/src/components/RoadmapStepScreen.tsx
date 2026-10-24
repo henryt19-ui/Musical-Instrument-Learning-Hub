@@ -1,5 +1,4 @@
 // apps/web/src/components/RoadmapStepScreen.tsx
-import React from "react";
 import Header from "./Header";
 
 export default function RoadmapStepScreen() {
@@ -11,9 +10,9 @@ export default function RoadmapStepScreen() {
         {/* Breadcrumbs & Back Link */}
         <div className="flex justify-between items-center mb-6">
           <nav className="text-sm text-gray-500 flex gap-2">
-            <a href="/" className="hover:text-gray-800">Home</a> / 
-            <a href="#" className="hover:text-gray-800">[Instrument]</a> / 
-            <a href="/roadmap" className="hover:text-gray-800">[Roadmap name]</a> / 
+            <a href="/" className="hover:text-gray-800">Home</a> /
+            <a href="#" className="hover:text-gray-800">[Instrument]</a> /
+            <a href="/roadmap" className="hover:text-gray-800">[Roadmap name]</a> /
             <span className="text-gray-800 font-medium">Step [n]</span>
           </nav>
           <a href="/roadmap" className="text-sm font-bold text-[#C2185B] hover:underline">
@@ -34,7 +33,7 @@ export default function RoadmapStepScreen() {
               <p className="text-gray-200 text-sm md:text-base mb-6">
                 Goal: [What you'll be able to do after this step]
               </p>
-              
+
               {/* Segmented Progress Bar */}
               <div className="flex gap-2 w-full max-w-md">
                 <div className="h-2 flex-1 bg-pink-400 rounded-full"></div>
@@ -56,14 +55,14 @@ export default function RoadmapStepScreen() {
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          
+
           {/* Left Column: Resources */}
           <div className="lg:col-span-2">
             <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-teal-500 to-blue-500 mb-2">
               Resources for This Step
             </h2>
             <p className="text-gray-500 text-sm mb-6">Work through them in order, or pick the format you like best.</p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
               {/* Resource 1: Video */}
               <div className="bg-white p-5 rounded-2xl flex items-center gap-4 shadow-sm border border-gray-100 cursor-pointer hover:shadow-md transition">
@@ -129,7 +128,7 @@ export default function RoadmapStepScreen() {
 
           {/* Right Column: Sidebar */}
           <div className="space-y-4">
-            
+
             {/* Practice Tip */}
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Practice Tip</h3>
