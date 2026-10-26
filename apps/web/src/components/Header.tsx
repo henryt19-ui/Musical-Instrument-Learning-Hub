@@ -10,7 +10,7 @@ export default function Header() {
           {/* These paths are integration points for the corresponding feature pages. */}
           <nav aria-label="Main navigation" className="order-3 flex w-full gap-x-5 overflow-x-auto pb-1 text-[11px] font-medium sm:order-none sm:w-auto sm:pb-0">
             <a href="/instruments" className="whitespace-nowrap transition hover:text-white/75">Instruments</a>
-            <a href="/roadmaps" className="whitespace-nowrap transition hover:text-white/75">Roadmaps</a>
+            <a href="/roadmap" className="whitespace-nowrap transition hover:text-white/75">Roadmaps</a>
             <a href="/resources" className="whitespace-nowrap transition hover:text-white/75">Resources</a>
             <a href="/practice-tools" className="whitespace-nowrap transition hover:text-white/75">Practice Tools</a>
             <a href="/library" className="whitespace-nowrap transition hover:text-white/75">My Library</a>

@@ -2,6 +2,12 @@
 import Header from "./Header";
 
 export default function RoadmapStepScreen() {
+  const pathSegments = window.location.pathname.split("/").filter(Boolean);
+  const stepNumber = Number(pathSegments[pathSegments.length - 1]);
+  const currentStep = Number.isInteger(stepNumber) && stepNumber >= 1 && stepNumber <= 6 ? stepNumber : 3;
+  const previousStep = currentStep - 1;
+  const nextStep = currentStep + 1;
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans">
       <Header />
@@ -11,9 +17,9 @@ export default function RoadmapStepScreen() {
         <div className="flex justify-between items-center mb-6">
           <nav className="text-sm text-gray-500 flex gap-2">
             <a href="/" className="hover:text-gray-800">Home</a> /
-            <a href="#" className="hover:text-gray-800">[Instrument]</a> /
+            <span>[Instrument]</span> /
             <a href="/roadmap" className="hover:text-gray-800">[Roadmap name]</a> /
-            <span className="text-gray-800 font-medium">Step [n]</span>
+            <span className="text-gray-800 font-medium">Step {currentStep}</span>
           </nav>
           <a href="/roadmap" className="text-sm font-bold text-[#C2185B] hover:underline">
             ← Back to roadmap
@@ -25,7 +31,7 @@ export default function RoadmapStepScreen() {
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div>
               <span className="inline-block bg-white/20 text-xs font-bold px-3 py-1 rounded-full mb-4">
-                [Roadmap name] · Step [n] of [n]
+                [Roadmap name] · Step {currentStep} of 6
               </span>
               <h1 className="text-4xl md:text-5xl font-extrabold mb-3 leading-tight">
                 [Step title]
@@ -115,13 +121,13 @@ export default function RoadmapStepScreen() {
 
             {/* Bottom Navigation */}
             <div className="flex justify-between items-center border-t border-gray-200 pt-6">
-              <a href="#" className="bg-white px-6 py-3 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition flex flex-col">
+              <a href={previousStep >= 1 ? `/roadmap/${previousStep}` : "/roadmap"} className="bg-white px-6 py-3 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition flex flex-col">
                 <span className="text-xs text-gray-500 mb-1">← Previous step</span>
-                <span className="font-bold text-gray-800 text-sm">[Step title]</span>
+                <span className="font-bold text-gray-800 text-sm">{previousStep >= 1 ? `Step ${previousStep}` : "Roadmap overview"}</span>
               </a>
-              <a href="#" className="bg-[#C2185B] text-white px-6 py-3 rounded-xl shadow-md hover:bg-[#ad1457] transition flex flex-col items-end">
-                <span className="text-xs text-pink-200 mb-1">Next step →</span>
-                <span className="font-bold text-sm">[Step title]</span>
+              <a href={nextStep <= 6 ? `/roadmap/${nextStep}` : "/roadmap"} className="bg-[#C2185B] text-white px-6 py-3 rounded-xl shadow-md hover:bg-[#ad1457] transition flex flex-col items-end">
+                <span className="text-xs text-pink-200 mb-1">{nextStep <= 6 ? "Next step →" : "Finish roadmap →"}</span>
+                <span className="font-bold text-sm">{nextStep <= 6 ? `Step ${nextStep}` : "Roadmap overview"}</span>
               </a>
             </div>
           </div>

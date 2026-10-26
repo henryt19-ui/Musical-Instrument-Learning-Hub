@@ -10,7 +10,7 @@ export default function RoadmapScreen() {
         {/* Breadcrumbs */}
         <nav className="text-sm text-gray-500 mb-6 flex gap-2">
           <a href="/" className="hover:text-gray-800">Home</a> /
-          <a href="#" className="hover:text-gray-800">[Instrument]</a> /
+          <span>[Instrument]</span> /
           <span className="text-gray-800 font-medium">[Roadmap name]</span>
         </nav>
 
@@ -47,9 +47,9 @@ export default function RoadmapScreen() {
 
           {/* Actions */}
           <div className="flex flex-col gap-3 min-w-[200px]">
-            <button className="bg-[#C2185B] text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
+            <a href="/roadmap/3" className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
               Continue roadmap
-            </button>
+            </a>
             <button className="bg-white text-gray-700 font-semibold py-3 px-6 rounded-full border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center gap-2 w-full">
               <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
               Save to Favorites
@@ -67,7 +67,7 @@ export default function RoadmapScreen() {
             <div className="space-y-4">
 
               {/* Step 1 - Completed */}
-              <div className="bg-white p-5 rounded-2xl flex items-center gap-5 shadow-sm border border-gray-100">
+              <a href="/roadmap/1" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                 </div>
@@ -76,10 +76,10 @@ export default function RoadmapScreen() {
                   <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
                 </div>
                 <span className="text-xs text-gray-400">[n] resources</span>
-              </div>
+              </a>
 
               {/* Step 2 - Completed */}
-              <div className="bg-white p-5 rounded-2xl flex items-center gap-5 shadow-sm border border-gray-100">
+              <a href="/roadmap/2" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
                 <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
                 </div>
@@ -88,10 +88,10 @@ export default function RoadmapScreen() {
                   <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
                 </div>
                 <span className="text-xs text-gray-400">[n] resources</span>
-              </div>
+              </a>
 
               {/* Step 3 - Current */}
-              <div className="bg-white p-5 rounded-2xl flex items-center gap-5 shadow-sm border border-gray-100">
+              <a href="/roadmap/3" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
                 <div className="w-8 h-8 rounded-full bg-[#C2185B] flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
                   3
                 </div>
@@ -100,11 +100,11 @@ export default function RoadmapScreen() {
                   <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
                 </div>
                 <span className="px-3 py-1 bg-[#C2185B] text-white text-xs font-bold rounded-full">You're here</span>
-              </div>
+              </a>
 
               {/* Steps 4-6 - Future */}
               {[4, 5, 6].map((num) => (
-                <div key={num} className="bg-gray-50/50 p-5 rounded-2xl flex items-center gap-5 opacity-60">
+                <a key={num} href={`/roadmap/${num}`} className="p-5 rounded-2xl flex items-center gap-5 bg-gray-50/50 opacity-60 hover:opacity-100 transition">
                   <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-400 font-bold text-sm">
                     {num}
                   </div>
@@ -113,7 +113,7 @@ export default function RoadmapScreen() {
                     <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
                   </div>
                   <span className="text-xs text-gray-400">[n] resources</span>
-                </div>
+                </a>
               ))}
 
             </div>
