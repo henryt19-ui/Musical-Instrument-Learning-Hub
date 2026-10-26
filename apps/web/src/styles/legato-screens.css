@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Great+Vibes&family=Manrope:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap");
 
 /* Scoped styles for the two October 2026 Legato Figma screens.
    This intentionally does not change the existing My Instruments/home styles. */
@@ -18,7 +18,8 @@
 .legato-ui button:focus-visible, .legato-ui a:focus-visible, .legato-ui input:focus-visible {
   outline: 3px solid #7759c4; outline-offset: 3px;
 }
-.legato-brand { font: 400 48px/1.1 "Great Vibes", "Brush Script MT", cursive; letter-spacing: -.4px; }
+.legato-brand { display: inline-flex; align-items: center; }
+.legato-brand img { display: block; width: auto; }
 
 /* MY LIBRARY ------------------------------------------------------------ */
 .legato-library { min-height: 100vh; background: #fafafc; }
@@ -31,7 +32,7 @@
   min-height: 78px; max-width: 1240px; margin: auto; padding: 7px 0;
   display: flex; align-items: center; justify-content: space-between; gap: 30px;
 }
-.legato-library-nav .legato-brand { color: white; text-shadow: 0 2px 14px rgba(61,20,79,.25); }
+.legato-library-nav .legato-brand img { height: 48px; filter: brightness(0) invert(1); }
 .legato-menu { display:flex; align-items:center; gap: 29px; margin-left: auto; color: white; }
 .legato-menu > a, .legato-menu > span { font-weight: 700; font-size: 15px; white-space: nowrap; }
 .legato-menu > span { cursor: default; }
@@ -101,7 +102,10 @@
 .legato-action-message { min-height: 22px; margin: 7px 0 0; text-align:center; color:#5c5470; font-size:13px; }
 .legato-library-footer { min-height: 87px; border-top: 1px solid #edebf2; background: white; }
 .legato-library-footer > div { max-width: 1240px; margin:auto; padding: 21px 0; display:flex; align-items:center; justify-content:space-between; gap:16px; }
-.legato-library-footer .legato-brand { color:#c2175c; font-size:30px; }
+.legato-library-footer .legato-brand img {
+  height: 30px;
+  filter: brightness(0) saturate(100%) invert(16%) sepia(81%) saturate(4785%) hue-rotate(319deg) brightness(81%) contrast(98%);
+}
 .legato-library-footer span { color:var(--lg-muted); font-size:14px; }
 
 /* LOG IN / SIGN UP ------------------------------------------------------- */
@@ -111,7 +115,7 @@
     linear-gradient(120deg, #ff8fbf 0%, #ffd46e 32%, #ff9ec9 58%, #8fc7ff 82%, #5c87f0 100%);
 }
 .legato-auth-main { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 35px 18px 64px; }
-.legato-auth-logo { color: white !important; font-size: 72px; line-height: 79px; text-shadow: 0 2px 18px rgba(61,20,79,.25); }
+.legato-auth-logo img { height: 72px; filter: brightness(0) invert(1); }
 .legato-auth-card { width: 100%; max-width: 460px; min-height: 740px; margin-top: 33px; padding: 32px; background:#fff; border-radius:28px; box-shadow:0 24px 30px rgba(41,20,69,.22); }
 .legato-auth-tabs { width:100%; height:55px; }
 .legato-auth-tabs button { flex:1; border:0; background:transparent; border-radius:99px; color:#5c5470; font-weight:600; }
@@ -151,7 +155,7 @@
 }
 @media (max-width: 850px) {
   .legato-library-nav-inner { flex-wrap:wrap; row-gap:4px; padding:10px 22px; }
-  .legato-library-nav .legato-brand { font-size:40px; }
+  .legato-library-nav .legato-brand img { height:40px; }
   .legato-menu { order:3; flex: 0 0 100%; justify-content:space-between; gap:9px; overflow-x:auto; padding-bottom:8px; }
   .legato-menu > a, .legato-menu > span { font-size:12px; }
   .legato-library-content { min-height:unset; }
@@ -174,7 +178,7 @@
   .legato-save-button { flex-basis:38px; width:38px; height:38px; }
   .legato-library-footer > div { padding:18px; }
   .legato-auth-main { padding:22px 14px 42px; }
-  .legato-auth-logo { font-size:62px; }
+  .legato-auth-logo img { height:62px; }
   .legato-auth-card { margin-top:16px; padding:25px 20px; border-radius:24px; min-height:unset; }
   .legato-auth-card h1 { font-size:28px; }
   .legato-auth-description { font-size:14px; }

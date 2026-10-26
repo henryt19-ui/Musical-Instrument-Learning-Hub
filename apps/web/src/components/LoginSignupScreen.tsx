@@ -27,7 +27,9 @@ export default function LoginSignupScreen() {
   return (
     <div className="legato-ui legato-auth">
       <main className="legato-auth-main">
-        <a className="legato-auth-logo legato-brand" href="/" aria-label="Legato home">Legato</a>
+        <a className="legato-auth-logo legato-brand" href="/" aria-label="Legato home">
+          <img src="/legato-logo.png" alt="Legato" />
+        </a>
         <section className="legato-auth-card" aria-labelledby="legato-auth-heading">
           <div className="legato-auth-tabs" role="tablist" aria-label="Account access">
             <button

@@ -79,7 +79,9 @@ function LibraryNavigation() {
   return (
     <header className="legato-library-nav">
       <div className="legato-library-nav-inner">
-        <a className="legato-brand" href="/" aria-label="Legato home">Legato</a>
+        <a className="legato-brand" href="/" aria-label="Legato home">
+          <img src="/legato-logo.png" alt="Legato" />
+        </a>
         <nav className="legato-menu" aria-label="Primary navigation">
           <a href="/">Instruments</a>
           <span aria-label="Roadmaps, coming soon">Roadmaps</span>
@@ -231,7 +233,12 @@ export default function MyLibraryScreen() {
         </section>
       </main>
       <footer className="legato-library-footer">
-        <div><a href="/" className="legato-brand">Legato</a><span>© 2026 Legato</span></div>
+        <div>
+          <a href="/" className="legato-brand" aria-label="Legato home">
+            <img src="/legato-logo.png" alt="Legato" />
+          </a>
+          <span>© 2026 Legato</span>
+        </div>
       </footer>
     </div>
   );
