@@ -11,12 +11,12 @@ export type Instrument = {
 export default function InstrumentCard({ instrument }: { instrument: Instrument }) {
   const iconKey = `${instrument.name} ${instrument.icon}`.toLowerCase();
   const iconSrc = iconKey.includes("guitar")
-    ? "/icons/guitar.svg"
+    ? "/figma-icons/guitar.svg"
     : iconKey.includes("piano")
-      ? "/icons/piano.svg"
+      ? "/figma-icons/piano.svg"
       : iconKey.includes("drum")
-        ? "/icons/drums.svg"
-        : "/icons/note.svg";
+        ? "/figma-icons/drums.svg"
+        : "/figma-icons/note.svg";
 
   return (
     <a

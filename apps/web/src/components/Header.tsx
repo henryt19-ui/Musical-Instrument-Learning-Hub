@@ -13,6 +13,7 @@ export default function Header() {
             <a href="/roadmaps" className="whitespace-nowrap transition hover:text-white/75">Roadmaps</a>
             <a href="/resources" className="whitespace-nowrap transition hover:text-white/75">Resources</a>
             <a href="/practice-tools" className="whitespace-nowrap transition hover:text-white/75">Practice Tools</a>
+            <a href="/library" className="whitespace-nowrap transition hover:text-white/75">My Library</a>
           </nav>
           <a href="/login" className="rounded-full bg-white px-4 py-2 text-[10px] font-semibold text-slate-800 shadow-md transition hover:bg-slate-100">
             Log in
