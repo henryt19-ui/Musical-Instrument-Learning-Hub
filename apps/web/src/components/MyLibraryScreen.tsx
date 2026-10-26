@@ -79,17 +79,19 @@ function LibraryNavigation() {
   return (
     <header className="legato-library-nav">
       <div className="legato-library-nav-inner">
-        <a className="legato-brand" href="/" aria-label="Legato home">Legato</a>
+        <a className="legato-brand" href="/" aria-label="Legato home">
+          <img src="/legato-logo.png" alt="Legato" />
+        </a>
         <nav className="legato-menu" aria-label="Primary navigation">
-          <a href="/">Instruments</a>
-          <span aria-label="Roadmaps, coming soon">Roadmaps</span>
-          <span aria-label="Resources, coming soon">Resources</span>
-          <span aria-label="Practice Tools, coming soon">Practice Tools</span>
+          <a href="/instruments">Instruments</a>
+          <a href="/roadmaps">Roadmaps</a>
+          <a href="/resources">Resources</a>
+          <a href="/practice-tools">Practice Tools</a>
           <a className="is-active" href="/library" aria-current="page">My Library</a>
         </nav>
-        <a href="/auth" className="legato-profile" aria-label="Account and sign in">
+        <a href="/login" className="legato-profile" aria-label="Log in">
           <span className="legato-profile-avatar" aria-hidden="true">A</span>
-          <span>Account</span>
+          <span>Log in</span>
         </a>
       </div>
     </header>
@@ -231,7 +233,12 @@ export default function MyLibraryScreen() {
         </section>
       </main>
       <footer className="legato-library-footer">
-        <div><a href="/" className="legato-brand">Legato</a><span>© 2026 Legato</span></div>
+        <div>
+          <a href="/" className="legato-brand" aria-label="Legato home">
+            <img src="/legato-logo.png" alt="Legato" />
+          </a>
+          <span>© 2026 Legato</span>
+        </div>
       </footer>
     </div>
   );
