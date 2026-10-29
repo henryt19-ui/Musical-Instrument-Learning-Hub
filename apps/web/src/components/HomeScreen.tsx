@@ -176,7 +176,7 @@ export default function HomeScreen() {
         <div>
           <SectionHeading title="Saved Items" color="from-pink-600 to-rose-600" />
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-            <a href="/favorites" className="flex min-h-16 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
+            <a href="/library" className="flex min-h-16 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-lg text-amber-600" aria-hidden="true">★</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold">Favorites</span>
@@ -184,7 +184,7 @@ export default function HomeScreen() {
               </span>
               <span className="text-slate-400" aria-hidden="true">›</span>
             </a>
-            <a href="/liked" className="flex min-h-16 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
+            <a href="/library" className="flex min-h-16 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:-translate-y-0.5 hover:shadow-lg">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-100 text-lg text-rose-600" aria-hidden="true">♥</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold">Liked</span>
@@ -230,7 +230,7 @@ export default function HomeScreen() {
             subtitle="Free tools to use while you practice, right in your browser"
             color="from-emerald-600 to-cyan-600"
           />
-          <a href="/practice-tools/metronome" className="flex min-h-20 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:shadow-lg">
+          <a href="/practice-tools" className="flex min-h-20 items-center gap-3 rounded-xl bg-white p-3 shadow-md transition hover:shadow-lg">
             <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-teal-100 text-xl text-teal-700" aria-hidden="true">♩</span>
             <span className="flex-1">
               <span className="block text-xs font-semibold">Metronome</span>
