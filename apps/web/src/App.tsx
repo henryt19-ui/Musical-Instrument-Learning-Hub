@@ -1,4 +1,6 @@
 import Header from "./components/Header";
+import ForgotPasswordScreen from "./components/ForgotPasswordScreen";
+import ResetPasswordScreen from "./components/ResetPasswordScreen";
 import HomeScreen from "./components/HomeScreen";
 import MyLibraryScreen from "./components/MyLibraryScreen";
 import LoginSignupScreen from "./components/LoginSignupScreen";
@@ -14,10 +16,16 @@ export default function App() {
 
   if (path === "/library") return <MyLibraryScreen />;
   if (path === "/auth" || path === "/login" || path === "/signup") return <LoginSignupScreen />;
+  if (path === "/reset-password") return <ResetPasswordScreen />;
+  if (path === "/forgot-password") return <ForgotPasswordScreen />;
   if (path === "/roadmap" || path === "/roadmaps") return <RoadmapScreen />;
+  if (path.startsWith("/roadmaps/")) {
+    return path.includes("/steps/") ? <RoadmapStepScreen /> : <RoadmapScreen />;
+  }
   if (path.startsWith("/roadmap/") || path.startsWith("/roadmaps/")) return <RoadmapStepScreen />;
   if (path === "/practice-tools") return <PracticeToolsScreen />;
   if (path === "/resources" || path.startsWith("/resources/")) return <ResourcesScreen />;
+  
 
   // Preserve the existing home screen built by another team member.
   return (
