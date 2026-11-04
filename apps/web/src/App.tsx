@@ -25,7 +25,6 @@ export default function App() {
   if (path.startsWith("/roadmap/") || path.startsWith("/roadmaps/")) return <RoadmapStepScreen />;
   if (path === "/practice-tools") return <PracticeToolsScreen />;
   if (path === "/resources" || path.startsWith("/resources/")) return <ResourcesScreen />;
-  
 
   // Preserve the existing home screen built by another team member.
   return (
