@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-
+import { supabase } from "../lib/supabase";
 type Mode = "login" | "signup";
 
 export default function LoginSignupScreen() {
@@ -15,14 +15,25 @@ export default function LoginSignupScreen() {
     setPassword("");
   }
 
-  function submitForm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    // Intentionally no fake login, credential persistence, or external requests.
-    // Replace this message with the real auth API integration when available.
-    setMessage(mode === "login"
-      ? "Login form validated. Connect the authentication API to sign in."
-      : "Sign-up form validated. Connect the authentication API to create an account.");
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+  setMessage("Working...");
+
+  if (mode === "signup") {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: name } }, // the trigger from Step 5a reads this
+    });
+    if (error) return setMessage(error.message);
+    setMessage(data.session ? "Account created. You're logged in." : "Check your email to confirm your account.");
+    return;
   }
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return setMessage(error.message);
+  window.location.href = "/"; // go to Home once logged in
+}
 
   return (
     <div className="legato-ui legato-auth">
@@ -94,11 +105,7 @@ export default function LoginSignupScreen() {
             </label>
             <div className="legato-forgot-row">
               {mode === "login" ? (
-                <button
-                  type="button"
-                  className="legato-text-link"
-                  onClick={() => setMessage("Password recovery will be available when the authentication service is connected.")}
-                >Forgot password?</button>
+                <a className="legato-text-link" href="/forgot-password">Forgot password?</a>
               ) : <span className="legato-password-hint">Use at least 8 characters.</span>}
             </div>
             <button type="submit" className="legato-primary-button">

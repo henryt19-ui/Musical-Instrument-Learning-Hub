@@ -1,7 +1,171 @@
 // apps/web/src/components/RoadmapScreen.tsx
+import { useEffect, useState } from "react";
 import Header from "./Header";
+import { supabase } from "../lib/supabase";
+
+type RoadmapResource = {
+  id: number;
+  title: string;
+  url: string;
+  kind: string;
+};
+
+type RoadmapStep = {
+  id: number;
+  position: number;
+  title: string;
+  description: string | null;
+  resources: RoadmapResource[];
+};
+
+type Roadmap = {
+  id: number;
+  title: string;
+  description: string | null;
+  level: string;
+  roadmap_steps: RoadmapStep[];
+};
+
+type Instrument = {
+  id: number;
+  slug: string;
+  name: string;
+};
+
+function roadmapTitleToSlug(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 export default function RoadmapScreen() {
+  const [instrumentName, setInstrumentName] = useState("");
+  const [instruments, setInstruments] = useState<Instrument[]>([]);
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const pathSegments = window.location.pathname.split("/").filter(Boolean);
+  const roadmapSlug = pathSegments[1];
+  const instrumentSlug = roadmapSlug?.split("-")[0];
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadRoadmaps() {
+      if (!instrumentSlug) {
+        const { data: instrumentData, error: instrumentListError } = await supabase
+          .from("instruments")
+          .select("id, slug, name")
+          .order("name");
+
+        if (!active) return;
+        if (instrumentListError) {
+          setLoadError(instrumentListError.message);
+        } else if (!instrumentData?.length) {
+          setLoadError("No instruments found.");
+        } else {
+          setInstruments((instrumentData ?? []) as Instrument[]);
+        }
+        setLoading(false);
+        return;
+      }
+
+      const { data: instrument, error: instrumentError } = await supabase
+        .from("instruments")
+        .select("id, name")
+        .eq("slug", instrumentSlug)
+        .single();
+
+      if (!active) return;
+      if (instrumentError) {
+        setLoadError(instrumentError.message);
+        setLoading(false);
+        return;
+      }
+
+      setInstrumentName(instrument.name);
+
+      const { data: roadmapData, error: roadmapError } = await supabase
+        .from("roadmaps")
+        .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))")
+        .eq("instrument_id", instrument.id)
+        .order("position", { referencedTable: "roadmap_steps" });
+
+      if (!active) return;
+      if (roadmapError) {
+        setLoadError(roadmapError.message);
+      } else {
+        setRoadmaps((roadmapData ?? []) as Roadmap[]);
+      }
+      setLoading(false);
+    }
+
+    loadRoadmaps().catch((error: unknown) => {
+      if (!active) return;
+      setLoadError(error instanceof Error ? error.message : String(error));
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const roadmap =
+    roadmaps.find((item) => roadmapTitleToSlug(item.title) === roadmapSlug) ??
+    (roadmaps.length === 1 ? roadmaps[0] : undefined);
+
+  if (loading || loadError || (!roadmap && roadmaps.length === 0)) {
+    const message = loading
+      ? "Loading roadmap..."
+      : loadError ?? `No roadmaps found for ${instrumentName}.`;
+
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] font-sans">
+        <Header />
+        <main className="max-w-6xl mx-auto px-6 py-8">
+          <p className={loadError ? "text-red-700" : "text-gray-500"} role={loadError ? "alert" : undefined}>
+            {message}
+          </p>
+        </main>
+      </div>
+    );
+  }
+
+  if (!roadmap) {
+    const choices = roadmapSlug
+      ? roadmaps.map((item) => ({
+          id: item.id,
+          name: item.title,
+          href: `/roadmaps/${roadmapTitleToSlug(item.title)}`,
+        }))
+      : instruments.map((instrument) => ({
+          id: instrument.id,
+          name: instrument.name,
+          href: `/roadmaps/${instrument.slug}`,
+        }));
+
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] font-sans">
+        <Header />
+        <main className="max-w-6xl mx-auto px-6 py-8">
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
+            {roadmapSlug ? `Choose a ${instrumentName} roadmap` : "Choose an instrument"}
+          </h1>
+          <div className="space-y-3">
+            {choices.map((choice) => (
+              <a
+                key={choice.id}
+                href={choice.href}
+                className="block rounded-2xl bg-white p-5 shadow-sm border border-gray-100 font-semibold text-gray-800 hover:shadow-md"
+              >
+                {choice.name}
+              </a>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAFA] font-sans">
       <Header />
@@ -10,8 +174,8 @@ export default function RoadmapScreen() {
         {/* Breadcrumbs */}
         <nav className="text-sm text-gray-500 mb-6 flex gap-2">
           <a href="/" className="hover:text-gray-800">Home</a> /
-          <span>[Instrument]</span> /
-          <span className="text-gray-800 font-medium">[Roadmap name]</span>
+          <span>{instrumentName}</span> /
+          <span className="text-gray-800 font-medium">{roadmap.title}</span>
         </nav>
 
         {/* Hero Section */}
@@ -24,30 +188,27 @@ export default function RoadmapScreen() {
           {/* Content */}
           <div className="flex-1 w-full">
             <div className="flex gap-2 mb-3">
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">[Level]</span>
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">[n] steps</span>
-              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">About [n] weeks</span>
+              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{roadmap.level}</span>
+              <span className="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded-full">{roadmap.roadmap_steps.length} steps</span>
             </div>
 
             <h1 className="text-4xl font-extrabold text-gray-900 mb-2 leading-tight">
-              [Instrument]:<br />[Roadmap name]
+              {instrumentName}:<br />{roadmap.title}
             </h1>
             <p className="text-gray-500 mb-6 text-sm max-w-xl">
-              [One or two sentences on what this roadmap covers and who it's for.]
+              {roadmap.description || "Follow this roadmap one step at a time."}
             </p>
 
-            {/* Progress Bar */}
             <div className="flex items-center gap-4 max-w-lg">
-              <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-orange-400 to-pink-500 w-[35%] rounded-full"></div>
-              </div>
-              <span className="text-xs text-gray-500 whitespace-nowrap">[x] of [n] done</span>
+              <span className="text-xs text-gray-500 whitespace-nowrap">
+                {roadmap.roadmap_steps.length} steps in this roadmap
+              </span>
             </div>
           </div>
 
           {/* Actions */}
           <div className="flex flex-col gap-3 min-w-[200px]">
-            <a href="/roadmap/3" className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
+            <a href={roadmap.roadmap_steps[0] ? `/roadmap/${roadmap.roadmap_steps[0].position}` : "#steps"} className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
               Continue roadmap
             </a>
             <button className="bg-white text-gray-700 font-semibold py-3 px-6 rounded-full border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center gap-2 w-full">
@@ -64,58 +225,22 @@ export default function RoadmapScreen() {
             <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500 mb-6">
               The Steps
             </h2>
-            <div className="space-y-4">
-
-              {/* Step 1 - Completed */}
-              <a href="/roadmap/1" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
-                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 text-sm"><span className="text-gray-400 mr-2">1·</span>[Step title]</h3>
-                  <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
-                </div>
-                <span className="text-xs text-gray-400">[n] resources</span>
-              </a>
-
-              {/* Step 2 - Completed */}
-              <a href="/roadmap/2" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
-                <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path></svg>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 text-sm"><span className="text-gray-400 mr-2">2·</span>[Step title]</h3>
-                  <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
-                </div>
-                <span className="text-xs text-gray-400">[n] resources</span>
-              </a>
-
-              {/* Step 3 - Current */}
-              <a href="/roadmap/3" className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
-                <div className="w-8 h-8 rounded-full bg-[#C2185B] flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
-                  3
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-gray-800 text-sm">[Step title]</h3>
-                  <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
-                </div>
-                <span className="px-3 py-1 bg-[#C2185B] text-white text-xs font-bold rounded-full">You're here</span>
-              </a>
-
-              {/* Steps 4-6 - Future */}
-              {[4, 5, 6].map((num) => (
-                <a key={num} href={`/roadmap/${num}`} className="p-5 rounded-2xl flex items-center gap-5 bg-gray-50/50 opacity-60 hover:opacity-100 transition">
-                  <div className="w-8 h-8 rounded-full bg-white border border-gray-200 flex items-center justify-center flex-shrink-0 text-gray-400 font-bold text-sm">
-                    {num}
+            <div id="steps" className="space-y-4">
+              {roadmap.roadmap_steps.map((step) => (
+                <a key={step.id} href={`/roadmap/${step.position}`} className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
+                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
+                    {step.position}
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-sm">[Step title]</h3>
-                    <p className="text-gray-400 text-xs mt-1">[Short description of the step]</p>
+                    <h3 className="font-bold text-gray-800 text-sm">{step.title}</h3>
+                    {step.description && <p className="text-gray-400 text-xs mt-1">{step.description}</p>}
                   </div>
-                  <span className="text-xs text-gray-400">[n] resources</span>
+                  <span className="text-xs text-gray-400">{step.resources.length} resources</span>
                 </a>
               ))}
-
+              {roadmap.roadmap_steps.length === 0 && (
+                <p className="text-gray-500">This roadmap does not have any steps yet.</p>
+              )}
             </div>
           </div>
 
@@ -128,23 +253,10 @@ export default function RoadmapScreen() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">What you'll learn</h3>
               <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                <li>• [Skill or outcome]</li>
-                <li>• [Skill or outcome]</li>
-                <li>• [Skill or outcome]</li>
+                {roadmap.roadmap_steps.map((step) => (
+                  <li key={step.id}>• {step.description || step.title}</li>
+                ))}
               </ul>
-
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">What you'll need</h3>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li>• [Equipment or prior skill]</li>
-                <li>• [Equipment or prior skill]</li>
-              </ul>
-            </div>
-
-            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">When you finish</h3>
-              <a href="#" className="font-bold text-gray-800 hover:text-[#C2185B] flex items-center gap-2">
-                [Next roadmap name] <span>→</span>
-              </a>
             </div>
           </div>
         </div>
