@@ -11,7 +11,7 @@ export default function ForgotPasswordScreen() {
     setSending(true);
     setMessage("Sending...");
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      // Where the link in the email takes the user. Must be on Supabase's Redirect URLs list 
+      // Where the link in the email takes the user. Must be on Supabase's Redirect URLs list
       redirectTo: `${window.location.origin}/reset-password`,
     });
     setSending(false);
