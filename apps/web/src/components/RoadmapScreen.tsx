@@ -26,22 +26,19 @@ type Roadmap = {
   roadmap_steps: RoadmapStep[];
 };
 
-type Instrument = {
-  id: number;
-  slug: string;
-  name: string;
-};
-
 function roadmapTitleToSlug(title: string) {
   return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
 export default function RoadmapScreen() {
   const [instrumentName, setInstrumentName] = useState("");
-  const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [favoriteSaved, setFavoriteSaved] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favoriteMessage, setFavoriteMessage] = useState("");
+  const [loginRequired, setLoginRequired] = useState(false);
   const pathSegments = window.location.pathname.split("/").filter(Boolean);
   const roadmapSlug = pathSegments[1];
   const instrumentSlug = roadmapSlug?.split("-")[0];
@@ -51,18 +48,16 @@ export default function RoadmapScreen() {
 
     async function loadRoadmaps() {
       if (!instrumentSlug) {
-        const { data: instrumentData, error: instrumentListError } = await supabase
-          .from("instruments")
-          .select("id, slug, name")
-          .order("name");
+        const { data: roadmapData, error: roadmapError } = await supabase
+          .from("roadmaps")
+          .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))")
+          .order("title");
 
         if (!active) return;
-        if (instrumentListError) {
-          setLoadError(instrumentListError.message);
-        } else if (!instrumentData?.length) {
-          setLoadError("No instruments found.");
+        if (roadmapError) {
+          setLoadError(roadmapError.message);
         } else {
-          setInstruments((instrumentData ?? []) as Instrument[]);
+          setRoadmaps((roadmapData ?? []) as Roadmap[]);
         }
         setLoading(false);
         return;
@@ -109,14 +104,102 @@ export default function RoadmapScreen() {
     };
   }, []);
 
-  const roadmap =
-    roadmaps.find((item) => roadmapTitleToSlug(item.title) === roadmapSlug) ??
-    (roadmaps.length === 1 ? roadmaps[0] : undefined);
+  const roadmap = roadmapSlug
+    ? roadmaps.find((item) => roadmapTitleToSlug(item.title) === roadmapSlug) ??
+      (roadmaps.length === 1 ? roadmaps[0] : undefined)
+    : undefined;
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkFavorite() {
+      if (!roadmap) return;
+
+      setFavoriteLoading(true);
+      setFavoriteMessage("");
+      setLoginRequired(false);
+
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError) throw userError;
+        if (!user) {
+          if (active) setFavoriteSaved(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("favorite_roadmaps")
+          .select("roadmap_id")
+          .eq("user_id", user.id)
+          .eq("roadmap_id", roadmap.id)
+          .maybeSingle();
+
+        if (error) throw error;
+        if (active) setFavoriteSaved(Boolean(data));
+      } catch (error) {
+        if (active) {
+          setFavoriteMessage(error instanceof Error ? error.message : String(error));
+        }
+      } finally {
+        if (active) setFavoriteLoading(false);
+      }
+    }
+
+    checkFavorite();
+    return () => {
+      active = false;
+    };
+  }, [roadmap?.id]);
+
+  async function toggleFavorite() {
+    if (!roadmap) return;
+
+    setFavoriteLoading(true);
+    setFavoriteMessage("");
+    setLoginRequired(false);
+
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (!user) {
+        setLoginRequired(true);
+        setFavoriteMessage("Log in to save roadmaps to your library.");
+        return;
+      }
+
+      if (favoriteSaved) {
+        const { error } = await supabase
+          .from("favorite_roadmaps")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("roadmap_id", roadmap.id);
+        if (error) throw error;
+        setFavoriteSaved(false);
+        setFavoriteMessage("Removed from your favorites.");
+      } else {
+        const { error } = await supabase
+          .from("favorite_roadmaps")
+          .upsert(
+            { user_id: user.id, roadmap_id: roadmap.id },
+            { onConflict: "user_id,roadmap_id", ignoreDuplicates: true },
+          );
+        if (error) throw error;
+        setFavoriteSaved(true);
+        setFavoriteMessage("Added to your favorites.");
+      }
+    } catch (error) {
+      setFavoriteMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setFavoriteLoading(false);
+    }
+  }
 
   if (loading || loadError || (!roadmap && roadmaps.length === 0)) {
     const message = loading
       ? "Loading roadmap..."
-      : loadError ?? `No roadmaps found for ${instrumentName}.`;
+      : loadError ?? (roadmapSlug
+          ? `No roadmaps found for ${instrumentName}.`
+          : "No roadmaps available.");
 
     return (
       <div className="min-h-screen bg-[#FAFAFA] font-sans">
@@ -131,24 +214,18 @@ export default function RoadmapScreen() {
   }
 
   if (!roadmap) {
-    const choices = roadmapSlug
-      ? roadmaps.map((item) => ({
-          id: item.id,
-          name: item.title,
-          href: `/roadmaps/${roadmapTitleToSlug(item.title)}`,
-        }))
-      : instruments.map((instrument) => ({
-          id: instrument.id,
-          name: instrument.name,
-          href: `/roadmaps/${instrument.slug}`,
-        }));
+    const choices = roadmaps.map((item) => ({
+      id: item.id,
+      name: item.title,
+      href: `/roadmaps/${roadmapTitleToSlug(item.title)}`,
+    }));
 
     return (
       <div className="min-h-screen bg-[#FAFAFA] font-sans">
         <Header />
         <main className="max-w-6xl mx-auto px-6 py-8">
           <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
-            {roadmapSlug ? `Choose a ${instrumentName} roadmap` : "Choose an instrument"}
+            {roadmapSlug ? `Choose a ${instrumentName} roadmap` : "Choose a roadmap"}
           </h1>
           <div className="space-y-3">
             {choices.map((choice) => (
@@ -211,10 +288,22 @@ export default function RoadmapScreen() {
             <a href={roadmap.roadmap_steps[0] ? `/roadmap/${roadmap.roadmap_steps[0].position}` : "#steps"} className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
               Continue roadmap
             </a>
-            <button className="bg-white text-gray-700 font-semibold py-3 px-6 rounded-full border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center gap-2 w-full">
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              disabled={favoriteLoading}
+              aria-pressed={favoriteSaved}
+              className="bg-white text-gray-700 font-semibold py-3 px-6 rounded-full border border-gray-200 hover:bg-gray-50 transition flex items-center justify-center gap-2 w-full disabled:cursor-wait disabled:opacity-60"
+            >
               <svg className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-              Save to Favorites
+              {favoriteLoading ? "Saving..." : favoriteSaved ? "Remove from Favorites" : "Save to Favorites"}
             </button>
+            {favoriteMessage && (
+              <p className="text-center text-sm text-gray-600" role="status" aria-live="polite">
+                {favoriteMessage}{" "}
+                {loginRequired && <a className="font-semibold text-[#C2185B] underline" href="/login">Log in</a>}
+              </p>
+            )}
           </div>
         </div>
 
