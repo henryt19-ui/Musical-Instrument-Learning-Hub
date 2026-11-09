@@ -7,7 +7,7 @@ export type Instrument = {
   icon: string;
 };
 
-// Selecting a card opens that instrument's detail route.
+// Selecting a card opens that instrument's beginner roadmap.
 export default function InstrumentCard({ instrument }: { instrument: Instrument }) {
   const iconKey = `${instrument.name} ${instrument.icon}`.toLowerCase();
   const iconSrc = iconKey.includes("guitar")
@@ -20,7 +20,7 @@ export default function InstrumentCard({ instrument }: { instrument: Instrument 
 
   return (
     <a
-      href={`/instruments/${instrument.id}`}
+      href={`/roadmaps/${instrument.id}-beginner`}
       className="group flex min-h-24 items-center gap-3 rounded-xl border border-violet-100 bg-[#f8f6fb] p-3 transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md sm:p-3.5"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#fff0b7,#f2d7ff_55%,#b9f3ee)] text-indigo-950 shadow-sm">
