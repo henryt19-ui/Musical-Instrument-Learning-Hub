@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
-// Placeholder content. Replace these arrays with API responses when the
-// roadmap and saved-resource endpoints become available.
 type Roadmap = {
-  id: string;
+  id: number;
   instrument: string;
   name: string;
-  status: "in-progress" | "not-started";
-  currentStep: number;
+  description: string | null;
+  level: string;
   totalSteps: number;
-  nextStep: string;
+  href: string;
 };
 
 type SavedResource = {
@@ -21,26 +20,21 @@ type SavedResource = {
   liked: boolean;
 };
 
-const exampleRoadmaps: Roadmap[] = [
-  {
-    id: "piano-basics",
-    instrument: "Piano",
-    name: "Beginner Fundamentals",
-    status: "in-progress",
-    currentStep: 4,
-    totalSteps: 10,
-    nextStep: "Practicing major scales",
-  },
-  {
-    id: "guitar-chords",
-    instrument: "Guitar",
-    name: "First Chords",
-    status: "not-started",
-    currentStep: 0,
-    totalSteps: 8,
-    nextStep: "Understanding the fretboard",
-  },
-];
+type FavoriteRoadmapRow = {
+  roadmap_id: number;
+  roadmaps: {
+    id: number;
+    title: string;
+    description: string | null;
+    level: string;
+    instruments: { name: string } | null;
+    roadmap_steps: { id: number }[];
+  } | null;
+};
+
+function roadmapTitleToSlug(title: string) {
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 const exampleResources: SavedResource[] = [
   {
@@ -99,40 +93,96 @@ function LibraryNavigation() {
 }
 
 function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
-  const inProgress = roadmap.status === "in-progress";
-  const progress = Math.round((roadmap.currentStep / roadmap.totalSteps) * 100);
   return (
     <article className="legato-roadmap-card">
       <div className="legato-roadmap-meta">
-        <span className={`legato-roadmap-status ${inProgress ? "in-progress" : "not-started"}`}>
-          {inProgress ? "In progress" : "Not started"}
-        </span>
-        <span className="legato-roadmap-count">
-          {inProgress ? `Step ${roadmap.currentStep} of ${roadmap.totalSteps}` : `${roadmap.totalSteps} steps`}
-        </span>
+        <span className="legato-roadmap-status not-started">Saved</span>
+        <span className="legato-roadmap-count">{roadmap.totalSteps} steps</span>
       </div>
-      <h3>{roadmap.instrument}: {roadmap.name}</h3>
-      <div
-        className="legato-progress-track"
-        role="progressbar"
-        aria-label={`${roadmap.instrument} roadmap progress`}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={progress}
-      >
-        <div className="legato-progress-fill" style={{ width: `${progress}%` }} />
-      </div>
-      <p className="legato-roadmap-next">
-        {inProgress ? "Next" : "Start with"}: {roadmap.nextStep}
-      </p>
+      <h3><a href={roadmap.href}>{roadmap.instrument}: {roadmap.name}</a></h3>
+      <p className="legato-roadmap-next">{roadmap.description || `${roadmap.level} roadmap`}</p>
     </article>
   );
 }
 
 export default function MyLibraryScreen() {
+  const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
+  const [roadmapsLoading, setRoadmapsLoading] = useState(true);
+  const [roadmapsError, setRoadmapsError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState<"favorites" | "liked">("favorites");
   const [savedIds, setSavedIds] = useState<string[]>(exampleResources.map((item) => item.id));
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    let requestId = 0;
+
+    async function loadFavoriteRoadmaps(userId: string | null) {
+      const currentRequestId = ++requestId;
+      setIsAuthenticated(Boolean(userId));
+      setRoadmapsError(null);
+      setRoadmapsLoading(true);
+
+      if (!userId) {
+        setRoadmaps([]);
+        setRoadmapsLoading(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from("favorite_roadmaps")
+          .select("roadmap_id, roadmaps(id, title, description, level, instruments(name), roadmap_steps(id))")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false })
+          .returns<FavoriteRoadmapRow[]>();
+
+        if (error) throw error;
+        if (!active || currentRequestId !== requestId) return;
+
+        setRoadmaps((data ?? []).flatMap(({ roadmaps: roadmap }) => {
+          if (!roadmap) return [];
+          return [{
+            id: roadmap.id,
+            instrument: roadmap.instruments?.name ?? "Instrument",
+            name: roadmap.title,
+            description: roadmap.description,
+            level: roadmap.level,
+            totalSteps: roadmap.roadmap_steps.length,
+            href: `/roadmaps/${roadmapTitleToSlug(roadmap.title)}`,
+          }];
+        }));
+      } catch (error) {
+        if (active && currentRequestId === requestId) {
+          setRoadmapsError(error instanceof Error ? error.message : String(error));
+          setRoadmaps([]);
+        }
+      } finally {
+        if (active && currentRequestId === requestId) setRoadmapsLoading(false);
+      }
+    }
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      void loadFavoriteRoadmaps(session?.user.id ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (error) throw error;
+      return loadFavoriteRoadmaps(data.session?.user.id ?? null);
+    }).catch((error: unknown) => {
+      if (active) {
+        setRoadmapsError(error instanceof Error ? error.message : String(error));
+        setRoadmapsLoading(false);
+      }
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
   const visibleResources = exampleResources.filter((resource) =>
     activeTab === "favorites" ? savedIds.includes(resource.id) : resource.liked
   );
@@ -184,7 +234,24 @@ export default function MyLibraryScreen() {
         <section className="legato-roadmaps-section" aria-labelledby="legato-roadmaps-heading">
           <h2 id="legato-roadmaps-heading" className="legato-section-title roadmaps">Roadmaps</h2>
           <div className="legato-roadmap-grid">
-            {exampleRoadmaps.map((roadmap) => <RoadmapCard key={roadmap.id} roadmap={roadmap} />)}
+            {roadmapsLoading && <p className="legato-empty-state">Loading your saved roadmaps...</p>}
+            {!roadmapsLoading && roadmapsError && (
+              <p className="legato-empty-state" role="alert">Could not load your roadmaps: {roadmapsError}</p>
+            )}
+            {!roadmapsLoading && !roadmapsError && !isAuthenticated && (
+              <div className="legato-empty-state">
+                <span><a className="legato-tip-link" href="/login">Log in</a> to see roadmaps saved to your library.</span>
+              </div>
+            )}
+            {!roadmapsLoading && !roadmapsError && isAuthenticated && roadmaps.length === 0 && (
+              <div className="legato-empty-state">
+                No roadmaps saved yet.
+                <span> Browse roadmaps and add your favorites to see them here.</span>
+              </div>
+            )}
+            {!roadmapsLoading && !roadmapsError && roadmaps.map((roadmap) => (
+              <RoadmapCard key={roadmap.id} roadmap={roadmap} />
+            ))}
           </div>
         </section>
 
