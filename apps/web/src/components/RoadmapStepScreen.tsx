@@ -44,6 +44,8 @@ export default function RoadmapStepScreen() {
   const requestedStepNumber = Number.isInteger(rawStepNumber) && rawStepNumber >= 1 ? rawStepNumber : 1;
   const roadmapSlug = pathSegments.includes("steps") && pathSegments[0] === "roadmaps" ? pathSegments[1] : undefined;
   const instrumentSlug = roadmapSlug?.split("-")[0];
+  const rawRoadmapId = Number(new URLSearchParams(window.location.search).get("roadmapId"));
+  const requestedRoadmapId = Number.isSafeInteger(rawRoadmapId) && rawRoadmapId > 0 ? rawRoadmapId : undefined;
 
   useEffect(() => {
     let active = true;
@@ -54,7 +56,9 @@ export default function RoadmapStepScreen() {
         .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))")
         .order("position", { referencedTable: "roadmap_steps" });
 
-      if (instrumentSlug) {
+      if (requestedRoadmapId) {
+        query = query.eq("id", requestedRoadmapId);
+      } else if (instrumentSlug) {
         const { data: instrumentData, error: instrumentError } = await supabase
           .from("instruments")
           .select("id")
@@ -106,7 +110,7 @@ export default function RoadmapStepScreen() {
     return () => {
       active = false;
     };
-  }, [instrumentSlug, roadmapSlug]);
+  }, [instrumentSlug, requestedRoadmapId, roadmapSlug]);
 
   useEffect(() => {
     if (!user || !roadmap) {
@@ -154,6 +158,7 @@ export default function RoadmapStepScreen() {
   const completedCount = roadmap?.roadmap_steps.filter((step) => completedStepIds.includes(step.id)).length ?? 0;
   const progressPercent = totalSteps > 0 ? Math.round((completedCount / totalSteps) * 100) : 0;
   const isCompleted = currentStep !== null && completedStepIds.includes(currentStep.id);
+  const roadmapStepHref = (position: number) => `/roadmap/${position}?roadmapId=${roadmap?.id}`;
 
   const handleProgressToggle = async () => {
     if (!user) {
@@ -300,14 +305,18 @@ export default function RoadmapStepScreen() {
                       ? "bg-pink-500"
                       : resource.kind === "article"
                         ? "bg-blue-400"
-                        : "bg-amber-400";
+                        : resource.kind === "practice"
+                          ? "bg-emerald-500"
+                          : "bg-amber-400";
 
                   const labelClass =
                     resource.kind === "video"
                       ? "bg-pink-100 text-pink-600"
                       : resource.kind === "article"
                         ? "bg-blue-100 text-blue-600"
-                        : "bg-amber-100 text-amber-600";
+                        : resource.kind === "practice"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-amber-100 text-amber-600";
 
                   return (
                     <a
@@ -328,7 +337,7 @@ export default function RoadmapStepScreen() {
                       </div>
                       <div>
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${labelClass}`}>
-                          {resource.kind}
+                          {resource.kind.replace(/_/g, " ")}
                         </span>
                         <h3 className="font-bold text-gray-800 text-sm mt-1">{resource.title}</h3>
                         <p className="text-xs text-gray-400 mt-1">Open resource</p>
@@ -340,11 +349,11 @@ export default function RoadmapStepScreen() {
             </div>
 
             <div className="flex justify-between items-center border-t border-gray-200 pt-6 gap-4 flex-wrap">
-              <a href={previousStep >= 1 ? `/roadmap/${previousStep}` : "/roadmap"} className="bg-white px-6 py-3 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition flex flex-col">
+              <a href={roadmapStepHref(previousStep)} className="bg-white px-6 py-3 rounded-xl border border-gray-200 shadow-sm hover:bg-gray-50 transition flex flex-col">
                 <span className="text-xs text-gray-500 mb-1">← Previous step</span>
                 <span className="font-bold text-gray-800 text-sm">{previousStep >= 1 ? `Step ${previousStep}` : "Roadmap overview"}</span>
               </a>
-              <a href={hasNextStep ? `/roadmap/${nextStep}` : `/roadmaps/${roadmapTitleToSlug(roadmap.title)}`} className="bg-[#C2185B] text-white px-6 py-3 rounded-xl shadow-md hover:bg-[#ad1457] transition flex flex-col items-end">
+              <a href={hasNextStep ? roadmapStepHref(nextStep) : `/roadmaps/${roadmapTitleToSlug(roadmap.title)}`} className="bg-[#C2185B] text-white px-6 py-3 rounded-xl shadow-md hover:bg-[#ad1457] transition flex flex-col items-end">
                 <span className="text-xs text-pink-200 mb-1">{hasNextStep ? "Next step →" : "Finish roadmap →"}</span>
                 <span className="font-bold text-sm">{hasNextStep ? `Step ${nextStep}` : "Roadmap overview"}</span>
               </a>

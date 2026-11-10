@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import AuthNavLink from "./AuthNavLink";
+import Header from "./Header";
 
 type Roadmap = {
   id: number;
@@ -69,26 +69,6 @@ const resourceIcon: Record<SavedResource["type"], string> = {
   Article: "/figma-icons/article.svg",
   Tabs: "/figma-icons/tabs.svg",
 };
-
-function LibraryNavigation() {
-  return (
-    <header className="legato-library-nav">
-      <div className="legato-library-nav-inner">
-        <a className="legato-brand" href="/" aria-label="Legato home">
-          <img src="/legato-logo.png" alt="Legato" />
-        </a>
-        <nav className="legato-menu" aria-label="Primary navigation">
-          <a href="/instruments">Instruments</a>
-          <a href="/roadmaps">Roadmaps</a>
-          <a href="/resources">Resources</a>
-          <a href="/practice-tools">Practice Tools</a>
-          <a className="is-active" href="/library" aria-current="page">My Library</a>
-        </nav>
-        <AuthNavLink className="legato-profile" showAvatar />
-      </div>
-    </header>
-  );
-}
 
 function RoadmapCard({ roadmap }: { roadmap: Roadmap }) {
   return (
@@ -195,8 +175,9 @@ export default function MyLibraryScreen() {
   }
 
   return (
-    <div className="legato-ui legato-library">
-      <LibraryNavigation />
+    <>
+      <Header />
+      <div className="legato-ui legato-library">
       <main className="legato-library-content">
         <div className="legato-library-overview">
           <div>
@@ -305,6 +286,7 @@ export default function MyLibraryScreen() {
           <span>© 2026 Legato</span>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }

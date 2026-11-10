@@ -1,4 +1,42 @@
+import { useEffect, useState } from "react";
 import InstrumentCard, { type Instrument } from "./InstrumentCard";
+import { supabase } from "../lib/supabase";
+import { useUser } from "../lib/useUser";
+
+type RoadmapStep = {
+  id: number;
+  position: number;
+  title: string;
+};
+
+type ProgressRow = {
+  completed_at: string;
+  roadmap_steps: { id: number; roadmap_id: number } | { id: number; roadmap_id: number }[] | null;
+};
+
+type UserRoadmap = {
+  id: number;
+  title: string;
+  level: string;
+  instruments: { name: string } | { name: string }[] | null;
+  roadmap_steps: RoadmapStep[];
+};
+
+type RoadmapProgress = {
+  roadmap: UserRoadmap;
+  currentStep: RoadmapStep;
+  lastCompletedStep: RoadmapStep;
+  completedStepIds: number[];
+  isComplete: boolean;
+};
+
+function firstRelation<T>(relation: T | T[] | null | undefined): T | undefined {
+  return Array.isArray(relation) ? relation[0] : relation ?? undefined;
+}
+
+function roadmapStepHref(roadmapId: number, position: number) {
+  return `/roadmap/${position}?roadmapId=${roadmapId}`;
+}
 
 // Static wireframe content; replace these collections with service data when available.
 const instruments: Instrument[] = [
@@ -132,6 +170,90 @@ function ResourceIcon({ name }: { name: (typeof resources)[number]["icon"] }) {
 }
 
 export default function HomeScreen() {
+  const user = useUser();
+  const [roadmapProgress, setRoadmapProgress] = useState<RoadmapProgress | null>(null);
+  const [progressLoading, setProgressLoading] = useState(true);
+  const [progressError, setProgressError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadRoadmapProgress() {
+      setProgressLoading(true);
+      setProgressError(null);
+      setRoadmapProgress(null);
+
+      if (!user) {
+        setProgressLoading(false);
+        return;
+      }
+
+      const { data: progressData, error: progressQueryError } = await supabase
+        .from("step_progress")
+        .select("completed_at, roadmap_steps!inner(id, roadmap_id)")
+        .eq("user_id", user.id)
+        .order("completed_at", { ascending: false });
+
+      if (!active) return;
+      if (progressQueryError) throw progressQueryError;
+
+      const progressRows = (progressData ?? []) as ProgressRow[];
+      const latestProgress = progressRows[0];
+      const latestStep = latestProgress ? firstRelation(latestProgress.roadmap_steps) : undefined;
+
+      if (!latestStep) {
+        setProgressLoading(false);
+        return;
+      }
+
+      const { data: roadmapData, error: roadmapQueryError } = await supabase
+        .from("roadmaps")
+        .select("id, title, level, instruments(name), roadmap_steps(id, position, title)")
+        .eq("id", latestStep.roadmap_id)
+        .order("position", { referencedTable: "roadmap_steps" })
+        .single();
+
+      if (!active) return;
+      if (roadmapQueryError) throw roadmapQueryError;
+
+      const roadmap = roadmapData as UserRoadmap;
+      const completedStepIds = progressRows.flatMap((row) => {
+        const step = firstRelation(row.roadmap_steps);
+        return step?.roadmap_id === roadmap.id ? [step.id] : [];
+      });
+      const completedIds = new Set(completedStepIds);
+      const lastCompletedStepId = latestStep.id;
+      const lastCompletedStep = roadmap.roadmap_steps.find((step) => step.id === lastCompletedStepId);
+      const currentStep =
+        roadmap.roadmap_steps.find((step) => !completedIds.has(step.id)) ??
+        roadmap.roadmap_steps[roadmap.roadmap_steps.length - 1];
+
+      if (!lastCompletedStep || !currentStep) {
+        setProgressLoading(false);
+        return;
+      }
+
+      setRoadmapProgress({
+        roadmap,
+        currentStep,
+        lastCompletedStep,
+        completedStepIds: [...completedIds],
+        isComplete: roadmap.roadmap_steps.every((step) => completedIds.has(step.id)),
+      });
+      setProgressLoading(false);
+    }
+
+    loadRoadmapProgress().catch((error: unknown) => {
+      if (!active) return;
+      setProgressError(error instanceof Error ? error.message : String(error));
+      setProgressLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [user]);
+
   return (
     <main className="mx-auto max-w-6xl px-5 pb-10 sm:px-8">
       {/* Instrument links overlap the bottom of the hero, matching the wireframe. */}
@@ -152,24 +274,47 @@ export default function HomeScreen() {
         <div className="md:col-span-2">
           <SectionHeading title="Continue Your Roadmap" color="from-orange-500 to-fuchsia-600" />
           <article className="relative min-h-48 overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_85%_15%,rgba(242,160,74,0.9),transparent_38%),linear-gradient(115deg,#253052_5%,#334f86_55%,#38232b_100%)] p-5 text-white shadow-xl">
-            <div className="relative z-10">
-              <p className="mb-2 inline-flex rounded-full bg-white/20 px-2 py-1 text-[9px] font-medium">
-                Beginner Guitar · Step 4 of 12
-              </p>
-              <h3 className="text-xl font-extrabold sm:text-2xl">Basic Strumming Patterns</h3>
-              <p className="mt-1 text-xs text-white/80">4 resources picked for this step</p>
-              <a href="/roadmaps/guitar-beginner/steps/4" className="mt-3 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-slate-900 transition hover:bg-pink-100">
-                <span aria-hidden="true">▶</span> Continue
-              </a>
-            </div>
-            <ol aria-label="Roadmap progress" className="relative z-10 mt-4 grid grid-cols-5 gap-2 text-[9px] text-white/75">
-              {["Holding the guitar", "Tuning", "First chords", "Strumming", "Chord changes"].map((step, index) => (
-                <li key={step} className="min-w-0">
-                  <div className={`mb-1 h-1 rounded-full ${index < 4 ? "bg-pink-400" : "bg-white/30"}`} />
-                  <span className="block truncate">{index + 1} · {step}</span>
-                </li>
-              ))}
-            </ol>
+            {progressLoading ? (
+              <p className="relative z-10 text-sm text-white/80">Loading your roadmap...</p>
+            ) : progressError ? (
+              <p className="relative z-10 text-sm text-white" role="alert">Unable to load your roadmap: {progressError}</p>
+            ) : roadmapProgress ? (
+              <>
+                <div className="relative z-10">
+                  <p className="mb-2 inline-flex rounded-full bg-white/20 px-2 py-1 text-[9px] font-medium">
+                    {firstRelation(roadmapProgress.roadmap.instruments)?.name} · {roadmapProgress.roadmap.title} · Step {roadmapProgress.currentStep.position} of {roadmapProgress.roadmap.roadmap_steps.length}
+                  </p>
+                  <h3 className="text-xl font-extrabold sm:text-2xl">{roadmapProgress.currentStep.title}</h3>
+                  <p className="mt-1 text-xs text-white/80">
+                    {roadmapProgress.isComplete
+                      ? "You’ve completed this roadmap."
+                      : `Last completed: ${roadmapProgress.lastCompletedStep.title}`}
+                  </p>
+                  <a
+                    href={roadmapStepHref(roadmapProgress.roadmap.id, roadmapProgress.currentStep.position)}
+                    className="mt-3 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-slate-900 transition hover:bg-pink-100"
+                  >
+                    <span aria-hidden="true">▶</span> {roadmapProgress.isComplete ? "Review" : "Continue"}
+                  </a>
+                </div>
+                <ol aria-label="Roadmap progress" className="relative z-10 mt-4 grid grid-cols-5 gap-2 text-[9px] text-white/75">
+                  {roadmapProgress.roadmap.roadmap_steps.map((step) => (
+                    <li key={step.id} className="min-w-0">
+                      <div className={`mb-1 h-1 rounded-full ${roadmapProgress.completedStepIds.includes(step.id) ? "bg-pink-400" : "bg-white/30"}`} />
+                      <span className="block truncate">{step.position} · {step.title}</span>
+                    </li>
+                  ))}
+                </ol>
+              </>
+            ) : (
+              <div className="relative z-10">
+                <h3 className="text-xl font-extrabold sm:text-2xl">Start a roadmap</h3>
+                <p className="mt-1 text-xs text-white/80">Your latest completed step will show up here.</p>
+                <a href="/roadmaps" className="mt-3 inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[11px] font-semibold text-slate-900 transition hover:bg-pink-100">
+                  Browse roadmaps
+                </a>
+              </div>
+            )}
           </article>
         </div>
 
