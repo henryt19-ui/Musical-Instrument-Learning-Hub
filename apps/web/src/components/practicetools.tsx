@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import AuthNavLink from "./AuthNavLink";
 
 const timeSignatures = [
   { label: "4/4", beats: 4, beatUnit: 4 },
@@ -113,7 +114,7 @@ export default function PracticeToolsScreen() {
             <a href="/practice-tools">Practice Tools</a>
             <a href="/library">My Library</a>
           </nav>
-          <a className="practice-login" href="/login">Log in</a>
+          <AuthNavLink className="practice-login" />
         </div>
       </header>
 

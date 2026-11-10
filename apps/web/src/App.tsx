@@ -1,4 +1,5 @@
 import Header from "./components/Header";
+import ProfileScreen from "./components/ProfileScreen";
 import ForgotPasswordScreen from "./components/ForgotPasswordScreen";
 import ResetPasswordScreen from "./components/ResetPasswordScreen";
 import HomeScreen from "./components/HomeScreen";
@@ -15,6 +16,7 @@ export default function App() {
   const path = window.location.pathname.replace(/\/$/, "") || "/";
 
   if (path === "/library") return <MyLibraryScreen />;
+  if (path === "/profile") return <ProfileScreen />;
   if (path === "/auth" || path === "/login" || path === "/signup") return <LoginSignupScreen />;
   if (path === "/reset-password") return <ResetPasswordScreen />;
   if (path === "/forgot-password") return <ForgotPasswordScreen />;

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import AuthNavLink from "./AuthNavLink";
 
 type ResourceType = "Video" | "Article" | "Tabs" | "Sheet music" | "Practice";
 type ResourceLevel = "Beginner" | "Intermediate";
@@ -103,7 +104,7 @@ export default function ResourcesScreen() {
             <a href="/practice-tools">Practice Tools</a>
             <a href="/library">My Library</a>
           </nav>
-          <a className="resources-login" href="/login">Log in</a>
+          <AuthNavLink className="resources-login" />
         </div>
       </header>
 
