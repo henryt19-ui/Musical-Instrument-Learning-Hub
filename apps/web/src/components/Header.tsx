@@ -1,3 +1,5 @@
+import AuthNavLink from "./AuthNavLink";
+
 type HeaderProps = {
   variant?: "compact" | "home";
 };
@@ -20,9 +22,7 @@ export default function Header({ variant = "compact" }: HeaderProps) {
               <a href="/practice-tools" className="whitespace-nowrap transition hover:text-white/75">Practice Tools</a>
               <a href="/library" className="whitespace-nowrap transition hover:text-white/75">My Library</a>
             </nav>
-            <a href="/login" className="shrink-0 rounded-full bg-white px-4 py-2 text-[10px] font-semibold text-slate-800 shadow-md transition hover:bg-slate-100">
-              Log in
-            </a>
+            <AuthNavLink className="shrink-0 rounded-full bg-white px-4 py-2 text-[10px] font-semibold text-slate-800 shadow-md transition hover:bg-slate-100" />
           </div>
         </div>
         {variant === "home" && (
