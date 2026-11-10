@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import Header from "./Header";
 
 type ResourceKind = "video" | "article" | "tabs" | "sheet_music" | "practice";
 type ResourceType = "Video" | "Article" | "Tabs" | "Sheet music" | "Practice";
@@ -197,24 +198,10 @@ export default function ResourcesScreen() {
   });
 
   return (
-    <div className="legato-ui resources-page">
-      <header className="resources-header">
-        <div className="resources-header-inner">
-          <a className="legato-brand resources-brand" href="/" aria-label="Legato home">
-            <img src="/legato-logo.png" alt="Legato" />
-          </a>
-          <nav className="resources-menu" aria-label="Main navigation">
-            <a href="/instruments">Instruments</a>
-            <a href="/roadmaps">Roadmaps</a>
-            <a href="/resources" aria-current="page">Resources</a>
-            <a href="/practice-tools">Practice Tools</a>
-            <a href="/library">My Library</a>
-          </nav>
-          <a className="resources-login" href="/login">Log in</a>
-        </div>
-      </header>
-
-      <main className="resources-content">
+    <>
+      <Header />
+      <div className="legato-ui resources-page">
+        <main className="resources-content">
         <div className="resources-heading-row">
           <div>
             <h1 className="resources-title">Resources</h1>
@@ -274,16 +261,17 @@ export default function ResourcesScreen() {
             <p className="resources-empty" role="status">No resources match those filters.</p>
           )}
         </section>
-      </main>
+        </main>
 
-      <footer className="resources-footer">
-        <div>
+        <footer className="resources-footer">
+          <div>
           <a className="legato-brand" href="/" aria-label="Legato home">
             <img src="/legato-logo.png" alt="Legato" />
           </a>
           <span>© 2026 Legato</span>
-        </div>
-      </footer>
-    </div>
+          </div>
+        </footer>
+      </div>
+    </>
   );
 }

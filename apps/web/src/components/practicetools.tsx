@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Header from "./Header";
 
 const timeSignatures = [
   { label: "4/4", beats: 4, beatUnit: 4 },
@@ -100,23 +101,9 @@ export default function PracticeToolsScreen() {
   }
 
   return (
-    <div className="legato-ui legato-practice">
-      <header className="practice-header">
-        <div className="practice-header-inner">
-          <a className="legato-brand practice-brand" href="/" aria-label="Legato home">
-            <img src="/legato-logo.png" alt="Legato" />
-          </a>
-          <nav className="practice-menu" aria-label="Main navigation">
-            <a href="/instruments">Instruments</a>
-            <a href="/roadmaps">Roadmaps</a>
-            <a href="/resources">Resources</a>
-            <a href="/practice-tools">Practice Tools</a>
-            <a href="/library">My Library</a>
-          </nav>
-          <a className="practice-login" href="/login">Log in</a>
-        </div>
-      </header>
-
+    <>
+      <Header />
+      <div className="legato-ui legato-practice">
       <main className="practice-content">
         <aside className="practice-sidebar" aria-label="Practice tools">
           <h2>Practice Tools</h2>
@@ -243,6 +230,7 @@ export default function PracticeToolsScreen() {
           <span>© 2026 Legato</span>
         </div>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
