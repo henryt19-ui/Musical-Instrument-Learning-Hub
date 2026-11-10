@@ -40,7 +40,10 @@ create table public.resources (
   step_id bigint not null references public.roadmap_steps (id) on delete cascade,
   title text not null,
   url text not null,
-  kind text not null check (kind in ('video', 'article', 'tabs'))
+  kind text not null check (kind in ('video', 'article', 'tabs', 'sheet_music', 'practice')),
+  description text,
+  source text,
+  duration_minutes int check (duration_minutes is null or duration_minutes >= 0)
 );
 
 -- 6. Which steps each user has finished

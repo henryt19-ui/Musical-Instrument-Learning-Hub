@@ -300,14 +300,18 @@ export default function RoadmapStepScreen() {
                       ? "bg-pink-500"
                       : resource.kind === "article"
                         ? "bg-blue-400"
-                        : "bg-amber-400";
+                        : resource.kind === "practice"
+                          ? "bg-emerald-500"
+                          : "bg-amber-400";
 
                   const labelClass =
                     resource.kind === "video"
                       ? "bg-pink-100 text-pink-600"
                       : resource.kind === "article"
                         ? "bg-blue-100 text-blue-600"
-                        : "bg-amber-100 text-amber-600";
+                        : resource.kind === "practice"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : "bg-amber-100 text-amber-600";
 
                   return (
                     <a
@@ -328,7 +332,7 @@ export default function RoadmapStepScreen() {
                       </div>
                       <div>
                         <span className={`text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider ${labelClass}`}>
-                          {resource.kind}
+                          {resource.kind.replace(/_/g, " ")}
                         </span>
                         <h3 className="font-bold text-gray-800 text-sm mt-1">{resource.title}</h3>
                         <p className="text-xs text-gray-400 mt-1">Open resource</p>

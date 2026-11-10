@@ -338,7 +338,9 @@
 .resources-type-tag.type-tabs, .resources-type-tag.type-sheet-music { background:#fff0cd; color:#76521c; }
 .resources-type-tag.type-practice { background:#e2f6f3; color:#216c6b; }
 .resources-card-copy h2 { margin:10px 0 5px; color:#292140; font-size:16px; font-weight:800; line-height:1.35; }
+.resources-card-copy h2 a:hover { text-decoration:underline; }
 .resources-card-copy p { margin:0; color:#6b6680; font-size:14px; }
+.resources-card-copy p + p { margin-top:5px; }
 .resources-empty { grid-column:1/-1; margin:0; padding:28px; border:1px dashed #dbd6e5; border-radius:18px; color:var(--lg-muted); text-align:center; }
 .resources-footer { min-height:87px; border-top:1px solid #edebf2; background:white; }
 .resources-footer > div { max-width:1240px; margin:auto; padding:21px 0; display:flex; align-items:center; justify-content:space-between; gap:16px; }
