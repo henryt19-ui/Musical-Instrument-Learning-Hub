@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import AuthNavLink from "./AuthNavLink";
 
 type Roadmap = {
   id: number;
@@ -83,10 +84,7 @@ function LibraryNavigation() {
           <a href="/practice-tools">Practice Tools</a>
           <a className="is-active" href="/library" aria-current="page">My Library</a>
         </nav>
-        <a href="/login" className="legato-profile" aria-label="Log in">
-          <span className="legato-profile-avatar" aria-hidden="true">A</span>
-          <span>Log in</span>
-        </a>
+        <AuthNavLink className="legato-profile" showAvatar />
       </div>
     </header>
   );
