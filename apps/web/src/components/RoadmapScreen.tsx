@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import Header from "./Header";
 import { supabase } from "../lib/supabase";
+import { useAuthSession } from "../lib/useUser";
 
 type RoadmapResource = {
   id: number;
@@ -31,6 +32,10 @@ function roadmapTitleToSlug(title: string) {
 }
 
 export default function RoadmapScreen() {
+  const { user, loading: authLoading } = useAuthSession();
+  const [completedStepIds, setCompletedStepIds] = useState<number[]>([]);
+  const [progressLoading, setProgressLoading] = useState(true);
+  const [progressError, setProgressError] = useState<string | null>(null);
   const [instrumentName, setInstrumentName] = useState("");
   const [roadmaps, setRoadmaps] = useState<Roadmap[]>([]);
   const [loading, setLoading] = useState(true);
@@ -151,6 +156,46 @@ export default function RoadmapScreen() {
     };
   }, [roadmap?.id]);
 
+  useEffect(() => {
+    let active = true;
+    setCompletedStepIds([]);
+    setProgressError(null);
+
+    if (authLoading) {
+      setProgressLoading(true);
+      return () => { active = false; };
+    }
+    if (!user) {
+      setProgressLoading(false);
+      return () => { active = false; };
+    }
+
+    setProgressLoading(true);
+    void supabase.from("step_progress").select("step_id").eq("user_id", user.id)
+      .then(({ data, error }) => {
+        if (error) throw error;
+        if (active) setCompletedStepIds((data ?? []).map((row) => Number(row.step_id)));
+      })
+      .catch((error: unknown) => {
+        if (active) setProgressError(error instanceof Error ? error.message : "Progress could not be loaded.");
+      })
+      .finally(() => { if (active) setProgressLoading(false); });
+
+    return () => { active = false; };
+  }, [user?.id, authLoading]);
+
+  const completedSet = new Set(completedStepIds);
+  function getProgress(item: Roadmap) {
+    const total = item.roadmap_steps.length;
+    const completed = item.roadmap_steps.filter((step) => completedSet.has(step.id)).length;
+    return { total, completed, percent: total > 0 ? Math.round((completed / total) * 100) : 0 };
+  }
+
+  const sortedSteps = [...(roadmap?.roadmap_steps ?? [])].sort((a, b) => a.position - b.position);
+  const roadmapProgress = roadmap ? getProgress(roadmap) : { total: 0, completed: 0, percent: 0 };
+  const nextStep = sortedSteps.find((step) => !completedSet.has(step.id)) ?? sortedSteps[sortedSteps.length - 1];
+  const nextStepHref = nextStep && roadmap ? "/roadmap/" + nextStep.position + "?roadmapId=" + roadmap.id : "#steps";
+
   async function toggleFavorite() {
     if (!roadmap) return;
 
@@ -214,29 +259,50 @@ export default function RoadmapScreen() {
   }
 
   if (!roadmap) {
-    const choices = roadmaps.map((item) => ({
-      id: item.id,
-      name: item.title,
-      href: `/roadmaps/${roadmapTitleToSlug(item.title)}`,
-    }));
-
     return (
       <div className="min-h-screen bg-[#FAFAFA] font-sans">
         <Header />
         <main className="max-w-6xl mx-auto px-6 py-8">
-          <h1 className="text-3xl font-extrabold text-gray-900 mb-6">
-            {roadmapSlug ? `Choose a ${instrumentName} roadmap` : "Choose a roadmap"}
+          <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
+            {roadmapSlug ? "Choose a " + instrumentName + " roadmap" : "Choose a roadmap"}
           </h1>
-          <div className="space-y-3">
-            {choices.map((choice) => (
-              <a
-                key={choice.id}
-                href={choice.href}
-                className="block rounded-2xl bg-white p-5 shadow-sm border border-gray-100 font-semibold text-gray-800 hover:shadow-md"
-              >
-                {choice.name}
-              </a>
-            ))}
+          <p className="mb-8 text-sm text-gray-500">
+            {user ? "Pick up where you left off." : "Explore learning paths. Log in to track your completion."}
+          </p>
+          {progressError && <p className="mb-5 text-sm text-red-700" role="alert">Progress unavailable: {progressError}</p>}
+          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+            {roadmaps.map((item) => {
+              const summary = getProgress(item);
+              const status = summary.total > 0 && summary.completed === summary.total
+                ? "Complete" : summary.completed > 0 ? "In progress" : "Not started";
+              return (
+                <a key={item.id} href={"/roadmaps/" + roadmapTitleToSlug(item.title)}
+                  className="group relative overflow-hidden rounded-3xl border border-fuchsia-100 bg-white p-6 shadow-[0_12px_30px_rgba(68,38,88,0.08)] transition hover:-translate-y-1 hover:border-pink-300 hover:shadow-[0_18px_38px_rgba(68,38,88,0.14)] focus-visible:outline-pink-600">
+                  <span className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500" />
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                    <span className="rounded-full bg-pink-50 px-3 py-1 text-xs font-bold capitalize text-pink-700">{item.level}</span>
+                    <span className="text-xs font-semibold text-gray-500">{summary.total} steps</span>
+                  </div>
+                  <h2 className="mb-2 text-xl font-extrabold text-gray-900 transition group-hover:text-[#C2185B]">{item.title}</h2>
+                  <p className="mb-6 min-h-9 text-sm text-gray-500">{item.description || "Build your skills, one lesson at a time."}</p>
+                  {user && !progressLoading && !progressError ? (
+                    <>
+                      <div className="mb-2 flex justify-between text-xs font-bold text-gray-600">
+                        <span>{status} · {summary.completed} of {summary.total} complete</span>
+                        <span>{summary.percent}%</span>
+                      </div>
+                      <div role="progressbar" aria-label={item.title + " progress"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={summary.percent}
+                        className="h-2.5 overflow-hidden rounded-full bg-gray-100">
+                        <div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500" style={{ width: summary.percent + "%" }} />
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-xs text-gray-500">{progressLoading ? "Loading progress..." : user ? "Progress unavailable" : "Sign in to track progress"}</p>
+                  )}
+                  <div className="mt-5 text-sm font-bold text-[#C2185B]">Open roadmap <span aria-hidden="true">→</span></div>
+                </a>
+              );
+            })}
           </div>
         </main>
       </div>
@@ -276,17 +342,29 @@ export default function RoadmapScreen() {
               {roadmap.description || "Follow this roadmap one step at a time."}
             </p>
 
-            <div className="flex items-center gap-4 max-w-lg">
-              <span className="text-xs text-gray-500 whitespace-nowrap">
-                {roadmap.roadmap_steps.length} steps in this roadmap
-              </span>
-            </div>
+            {user && !progressLoading && !progressError ? (
+              <div className="max-w-lg rounded-2xl bg-pink-50/60 p-4">
+                <div className="mb-2 flex items-center justify-between gap-3 text-sm font-bold text-gray-700">
+                  <span>{roadmapProgress.completed} of {roadmapProgress.total} steps completed</span>
+                  <span className="text-[#C2185B]">{roadmapProgress.percent}%</span>
+                </div>
+                <div role="progressbar" aria-label="Roadmap completion" aria-valuemin={0} aria-valuemax={100}
+                  aria-valuenow={roadmapProgress.percent} className="h-3 overflow-hidden rounded-full bg-white">
+                  <div className="h-full rounded-full bg-gradient-to-r from-amber-400 via-pink-500 to-purple-500 transition-all"
+                    style={{ width: roadmapProgress.percent + "%" }} />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">
+                {progressLoading ? "Loading progress..." : progressError ? "Progress unavailable: " + progressError : "Log in to track your progress as you complete steps."}
+              </p>
+            )
           </div>
 
           {/* Actions */}
           <div className="flex flex-col gap-3 min-w-[200px]">
-            <a href={roadmap.roadmap_steps[0] ? `/roadmap/${roadmap.roadmap_steps[0].position}` : "#steps"} className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
-              Continue roadmap
+            <a href={nextStepHref} className="bg-[#C2185B] text-center text-white font-semibold py-3 px-6 rounded-full hover:bg-[#ad1457] transition shadow-md w-full">
+              {roadmapProgress.total > 0 && roadmapProgress.completed === roadmapProgress.total ? "Review roadmap" : roadmapProgress.completed > 0 ? "Continue roadmap" : "Start roadmap"}
             </a>
             <button
               type="button"
@@ -315,18 +393,30 @@ export default function RoadmapScreen() {
               The Steps
             </h2>
             <div id="steps" className="space-y-4">
-              {roadmap.roadmap_steps.map((step) => (
-                <a key={step.id} href={`/roadmap/${step.position}`} className="p-5 rounded-2xl flex items-center gap-5 bg-white shadow-sm border border-gray-100 hover:shadow-md transition">
-                  <div className="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0 text-pink-500 font-bold">
-                    {step.position}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-bold text-gray-800 text-sm">{step.title}</h3>
-                    {step.description && <p className="text-gray-400 text-xs mt-1">{step.description}</p>}
-                  </div>
-                  <span className="text-xs text-gray-400">{step.resources.length} resources</span>
-                </a>
-              ))}
+              {sortedSteps.map((step) => {
+                const done = completedSet.has(step.id);
+                return (
+                  <a key={step.id} href={"/roadmap/" + step.position + "?roadmapId=" + roadmap.id}
+                    className={"group rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md flex items-center gap-5 " +
+                      (done ? "border-emerald-200 bg-emerald-50/70" : "border-gray-100 bg-white hover:border-pink-200")}>
+                    <div className={"flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl font-extrabold " +
+                      (done ? "bg-emerald-500 text-white" : "bg-gradient-to-br from-pink-100 to-purple-100 text-pink-600")}>
+                      {done ? "✓" : step.position}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-extrabold text-gray-800 group-hover:text-[#C2185B]">{step.title}</h3>
+                      {step.description && <p className="mt-1 text-xs text-gray-500">{step.description}</p>}
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                        <span className={"rounded-full px-2 py-1 font-bold " + (done ? "bg-emerald-100 text-emerald-800" : "bg-gray-100 text-gray-600")}>
+                          {user && !progressLoading && !progressError ? done ? "Completed" : "To do" : progressLoading ? "Checking progress" : user ? "Progress unavailable" : "Log in to track"}
+                        </span>
+                        <span className="text-gray-400">{step.resources.length} resources</span>
+                      </div>
+                    </div>
+                    <span className="text-lg text-pink-500 transition group-hover:translate-x-1" aria-hidden="true">→</span>
+                  </a>
+                );
+              })}
               {roadmap.roadmap_steps.length === 0 && (
                 <p className="text-gray-500">This roadmap does not have any steps yet.</p>
               )}
@@ -342,7 +432,7 @@ export default function RoadmapScreen() {
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 mb-6">
               <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">What you'll learn</h3>
               <ul className="text-sm text-gray-600 space-y-2 mb-6">
-                {roadmap.roadmap_steps.map((step) => (
+                {sortedSteps.map((step) => (
                   <li key={step.id}>• {step.description || step.title}</li>
                 ))}
               </ul>
