@@ -171,11 +171,15 @@ export default function RoadmapScreen() {
     }
 
     setProgressLoading(true);
-    void supabase.from("step_progress").select("step_id").eq("user_id", user.id)
-      .then(({ data, error }) => {
-        if (error) throw error;
-        if (active) setCompletedStepIds((data ?? []).map((row) => Number(row.step_id)));
-      })
+    async function loadProgress() {
+      const { data, error } = await supabase.from("step_progress")
+        .select("step_id")
+        .eq("user_id", user!.id);
+      if (error) throw error;
+      if (active) setCompletedStepIds((data ?? []).map((row) => Number(row.step_id)));
+    }
+
+    void loadProgress()
       .catch((error: unknown) => {
         if (active) setProgressError(error instanceof Error ? error.message : "Progress could not be loaded.");
       })
