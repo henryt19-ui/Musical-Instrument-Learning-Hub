@@ -358,7 +358,7 @@ export default function RoadmapScreen() {
               <p className="text-sm text-gray-500">
                 {progressLoading ? "Loading progress..." : progressError ? "Progress unavailable: " + progressError : "Log in to track your progress as you complete steps."}
               </p>
-            )
+            )}
           </div>
 
           {/* Actions */}
