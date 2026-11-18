@@ -454,7 +454,7 @@ export default function HomeScreen() {
             subtitle="A free resource we love this week"
             color="from-pink-600 to-purple-600"
           />
-          <article className="flex min-h-48 flex-col justify-end overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.8),transparent_35%),radial-gradient(ellipse_at_80%_100%,rgba(105,24,73,0.65),transparent_55%),#0c0b11] p-5 text-white shadow-xl">
+          <article className="flex min-h-48 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-pink-950 to-pink-700 p-5 text-white shadow-xl">
             <span className="mb-2 w-fit rounded-full bg-white/20 px-2 py-1 text-[9px]">Sheet music · All instruments</span>
             <h3 className="text-2xl font-black tracking-tight">IMSLP</h3>
             <p className="mt-1 text-[10px] text-white/75">A huge free library of public-domain sheet music</p>
