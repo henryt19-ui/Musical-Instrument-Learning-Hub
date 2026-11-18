@@ -30,6 +30,15 @@ type RoadmapProgress = {
   isComplete: boolean;
 };
 
+type SuggestedResource = {
+  id: number;
+  title: string;
+  url: string;
+  kind: "video" | "article" | "tabs" | "sheet_music" | "practice";
+  source: string | null;
+  duration_minutes: number | null;
+};
+
 function firstRelation<T>(relation: T | T[] | null | undefined): T | undefined {
   return Array.isArray(relation) ? relation[0] : relation ?? undefined;
 }
@@ -38,7 +47,21 @@ function roadmapStepHref(roadmapId: number, position: number) {
   return `/roadmap/${position}?roadmapId=${roadmapId}`;
 }
 
-// Static wireframe content; replace these collections with service data when available.
+function resourceKindLabel(kind: SuggestedResource["kind"]) {
+  if (kind === "sheet_music") return "Sheet music";
+  return kind === "tabs" ? "Tabs" : kind.charAt(0).toUpperCase() + kind.slice(1);
+}
+
+function resourceSource(resource: SuggestedResource) {
+  if (resource.source?.trim()) return resource.source;
+  try {
+    return new URL(resource.url).hostname.replace(/^www\./, "");
+  } catch {
+    return resource.url;
+  }
+}
+
+// Static instrument cards shown on the homepage.
 const instruments: Instrument[] = [
   {
     id: "guitar",
@@ -65,41 +88,6 @@ const instruments: Instrument[] = [
     icon: "drums",
   },
 ];
-
-const resources = [
-  {
-    type: "Video",
-    title: "Down-up strumming for absolute beginners",
-    source: "YouTube · 12 min",
-    color: "from-pink-400 to-rose-500",
-    icon: "play",
-    href: "/resources/down-up-strumming",
-  },
-  {
-    type: "Article",
-    title: "The 6 strumming patterns every beginner should know",
-    source: "Guitar blog · 8 min read",
-    color: "from-blue-400 to-blue-500",
-    icon: "article",
-    href: "/resources/strumming-patterns",
-  },
-  {
-    type: "Tab",
-    title: "Easy songs to practice your first strumming pattern",
-    source: "Tab collection · 10 songs",
-    color: "from-amber-300 to-orange-400",
-    icon: "tabs",
-    href: "/resources/easy-songs",
-  },
-  {
-    type: "Practice",
-    title: "10-minute strumming drill at 70 BPM",
-    source: "Practice routine · 10 min",
-    color: "from-emerald-300 to-cyan-500",
-    icon: "clock",
-    href: "/resources/strumming-drill",
-  },
-] as const;
 
 // Suggested next-step roadmaps shown below the learning tools.
 const roadmaps = [
@@ -156,17 +144,24 @@ function SectionHeading({
 }
 
 // Keeps resource-card icons consistent while selecting a shape by resource type.
-function ResourceIcon({ name }: { name: (typeof resources)[number]["icon"] }) {
-  if (name === "play") {
+function ResourceIcon({ kind }: { kind: SuggestedResource["kind"] }) {
+  if (kind === "video") {
     return <path d="m9 6 10 6-10 6V6Z" fill="currentColor" stroke="none" />;
   }
-  if (name === "article") {
+  if (kind === "article") {
     return <path d="M7 3h8l4 4v14H7zM15 3v5h5M10 12h6M10 16h6" />;
   }
-  if (name === "tabs") {
+  if (kind === "tabs" || kind === "sheet_music") {
     return <path d="M5 7h14M5 12h14M5 17h14M8 5v4M13 10v4M17 15v4" />;
   }
   return <path d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />;
+}
+
+function resourceColor(kind: SuggestedResource["kind"]) {
+  if (kind === "video") return "from-pink-400 to-rose-500";
+  if (kind === "article") return "from-blue-400 to-blue-500";
+  if (kind === "tabs" || kind === "sheet_music") return "from-amber-300 to-orange-400";
+  return "from-emerald-300 to-cyan-500";
 }
 
 export default function HomeScreen() {
@@ -174,6 +169,9 @@ export default function HomeScreen() {
   const [roadmapProgress, setRoadmapProgress] = useState<RoadmapProgress | null>(null);
   const [progressLoading, setProgressLoading] = useState(true);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [suggestedResources, setSuggestedResources] = useState<SuggestedResource[]>([]);
+  const [resourcesLoading, setResourcesLoading] = useState(true);
+  const [resourcesError, setResourcesError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -253,6 +251,45 @@ export default function HomeScreen() {
       active = false;
     };
   }, [user]);
+
+  useEffect(() => {
+    if (progressLoading) return;
+
+    let active = true;
+
+    async function loadSuggestedResources() {
+      setResourcesLoading(true);
+      setResourcesError(null);
+
+      let query = supabase
+        .from("resources")
+        .select("id, title, url, kind, source, duration_minutes")
+        .order("title")
+        .limit(4);
+
+      if (roadmapProgress) {
+        query = query.eq("step_id", roadmapProgress.currentStep.id);
+      }
+
+      const { data, error } = await query;
+
+      if (!active) return;
+      if (error) throw error;
+
+      setSuggestedResources((data ?? []) as SuggestedResource[]);
+      setResourcesLoading(false);
+    }
+
+    loadSuggestedResources().catch((error: unknown) => {
+      if (!active) return;
+      setResourcesError(error instanceof Error ? error.message : String(error));
+      setResourcesLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [progressLoading, roadmapProgress]);
 
   return (
     <main className="mx-auto max-w-6xl px-5 pb-10 sm:px-8">
@@ -341,26 +378,36 @@ export default function HomeScreen() {
         </div>
       </section>
 
-      {/* Resource destinations are placeholders for future resource routes. */}
       <section className="mt-7">
         <SectionHeading
           title="Suggested Resources for Your Next Step"
-          subtitle="Hand-picked for Step 4 · Basic Strumming Patterns"
+          subtitle={roadmapProgress
+            ? `For Step ${roadmapProgress.currentStep.position} · ${roadmapProgress.currentStep.title}`
+            : "Explore resources from the learning library"}
           color="from-emerald-600 via-amber-500 to-orange-600"
           action={{ label: "See all resources", href: "/resources" }}
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {resources.map((resource) => (
-            <a key={resource.title} href={resource.href} className="group overflow-hidden rounded-xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
-              <div className={`flex h-16 items-center justify-center bg-gradient-to-br ${resource.color} text-white`}>
+          {resourcesLoading ? (
+            <p className="text-sm text-slate-500" role="status">Loading suggested resources...</p>
+          ) : resourcesError ? (
+            <p className="text-sm text-slate-600" role="alert">Unable to load suggested resources: {resourcesError}</p>
+          ) : suggestedResources.length === 0 ? (
+            <p className="text-sm text-slate-500" role="status">No resources are available for this step yet.</p>
+          ) : suggestedResources.map((resource) => (
+            <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer" className="group overflow-hidden rounded-xl bg-white shadow-md transition hover:-translate-y-1 hover:shadow-lg">
+              <div className={`flex h-16 items-center justify-center bg-gradient-to-br ${resourceColor(resource.kind)} text-white`}>
                 <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <ResourceIcon name={resource.icon} />
+                  <ResourceIcon kind={resource.kind} />
                 </svg>
               </div>
               <div className="p-3">
-                <span className="inline-flex rounded-full bg-pink-100 px-2 py-0.5 text-[9px] font-semibold text-pink-700">{resource.type}</span>
+                <span className="inline-flex rounded-full bg-pink-100 px-2 py-0.5 text-[9px] font-semibold text-pink-700">{resourceKindLabel(resource.kind)}</span>
                 <h3 className="mt-2 min-h-8 text-[11px] font-semibold leading-snug text-slate-900 group-hover:text-pink-600">{resource.title}</h3>
-                <p className="mt-1 text-[9px] text-slate-500">{resource.source}</p>
+                <p className="mt-1 text-[9px] text-slate-500">
+                  {resourceSource(resource)}
+                  {resource.duration_minutes !== null && ` · ${resource.duration_minutes} min`}
+                </p>
               </div>
             </a>
           ))}
@@ -407,7 +454,7 @@ export default function HomeScreen() {
             subtitle="A free resource we love this week"
             color="from-pink-600 to-purple-600"
           />
-          <article className="flex min-h-48 flex-col justify-end overflow-hidden rounded-2xl bg-[radial-gradient(ellipse_at_50%_0%,rgba(255,255,255,0.8),transparent_35%),radial-gradient(ellipse_at_80%_100%,rgba(105,24,73,0.65),transparent_55%),#0c0b11] p-5 text-white shadow-xl">
+          <article className="flex min-h-48 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-pink-950 to-pink-700 p-5 text-white shadow-xl">
             <span className="mb-2 w-fit rounded-full bg-white/20 px-2 py-1 text-[9px]">Sheet music · All instruments</span>
             <h3 className="text-2xl font-black tracking-tight">IMSLP</h3>
             <p className="mt-1 text-[10px] text-white/75">A huge free library of public-domain sheet music</p>

@@ -2,7 +2,7 @@
 
 Repository: https://github.com/henryt19-ui/Musical-Instrument-Learning-Hub
 
-This **private** repository contains a technical documentation/architecture starter for Team 3's Musical Instrument Learning Hub, based on the confidential October 2026 draft. No running application has been deployed.
+This **private** repository contains a technical documentation/architecture starter for Team 3's Musical Instrument Learning Hub. a version has been deployed to the Rowan EC2 instance.
 
 ## Clone
 ```bash

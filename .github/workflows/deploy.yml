@@ -1,0 +1,73 @@
+name: Deploy web app to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Build web app
+        working-directory: apps/web
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          : "${VITE_SUPABASE_URL:?Set the VITE_SUPABASE_URL GitHub secret}"
+          : "${VITE_SUPABASE_PUBLISHABLE_KEY:?Set the VITE_SUPABASE_PUBLISHABLE_KEY GitHub secret}"
+          npm ci
+          npm run build
+
+      - name: Configure SSH
+        env:
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          : "${EC2_SSH_KEY:?Set the EC2_SSH_KEY GitHub secret}"
+          : "${EC2_KNOWN_HOSTS:?Set the EC2_KNOWN_HOSTS GitHub secret}"
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Copy build to EC2 and reload Nginx
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+        run: |
+          set -euo pipefail
+          : "${EC2_HOST:?Set the EC2_HOST GitHub secret}"
+          : "${EC2_USER:?Set the EC2_USER GitHub secret}"
+
+          ssh_options=(-i "$HOME/.ssh/id_ed25519" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes)
+
+          ssh "${ssh_options[@]}" "$EC2_USER@$EC2_HOST" 'mkdir -p ~/legato-deploy'
+          rsync -az --delete \
+            -e "ssh -i $HOME/.ssh/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+            apps/web/dist/ "$EC2_USER@$EC2_HOST:legato-deploy/"
+          ssh "${ssh_options[@]}" "$EC2_USER@$EC2_HOST" \
+            'sudo cp -r "$HOME/legato-deploy/." /var/www/legato/ && sudo nginx -t && sudo systemctl reload nginx'
