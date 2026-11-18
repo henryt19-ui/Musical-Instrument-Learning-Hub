@@ -164,6 +164,14 @@ function resourceColor(kind: SuggestedResource["kind"]) {
   return "from-emerald-300 to-cyan-500";
 }
 
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return String(error);
+}
+
 export default function HomeScreen() {
   const user = useUser();
   const [roadmapProgress, setRoadmapProgress] = useState<RoadmapProgress | null>(null);
@@ -243,7 +251,7 @@ export default function HomeScreen() {
 
     loadRoadmapProgress().catch((error: unknown) => {
       if (!active) return;
-      setProgressError(error instanceof Error ? error.message : String(error));
+      setProgressError(getErrorMessage(error));
       setProgressLoading(false);
     });
 
@@ -282,7 +290,7 @@ export default function HomeScreen() {
 
     loadSuggestedResources().catch((error: unknown) => {
       if (!active) return;
-      setResourcesError(error instanceof Error ? error.message : String(error));
+      setResourcesError(getErrorMessage(error));
       setResourcesLoading(false);
     });
 

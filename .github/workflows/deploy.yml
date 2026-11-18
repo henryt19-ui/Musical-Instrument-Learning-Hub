@@ -36,6 +36,7 @@ jobs:
           set -euo pipefail
           : "${VITE_SUPABASE_URL:?Set the VITE_SUPABASE_URL GitHub secret}"
           : "${VITE_SUPABASE_PUBLISHABLE_KEY:?Set the VITE_SUPABASE_PUBLISHABLE_KEY GitHub secret}"
+          node -e 'const url = new URL(process.env.VITE_SUPABASE_URL); if (url.pathname !== "/" || url.search || url.hash) { console.error("VITE_SUPABASE_URL must be the project base URL without a path, query, or fragment."); process.exit(1); }'
           npm ci
           npm run build
 
