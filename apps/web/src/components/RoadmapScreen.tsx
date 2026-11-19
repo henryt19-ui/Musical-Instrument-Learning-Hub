@@ -82,7 +82,7 @@ export default function RoadmapScreen() {
         roadmapQuery = roadmapQuery.eq("instrument_id", instrumentId);
         roadmapQuery = roadmapQuery.order("position", { referencedTable: "roadmap_steps" });
       } else {
-        roadmapQuery = roadmapQuery.order("title");
+        roadmapQuery = roadmapQuery.order("instrument_id", { ascending: true });
       }
 
       const { data: roadmapData, error: roadmapError } = await roadmapQuery;
