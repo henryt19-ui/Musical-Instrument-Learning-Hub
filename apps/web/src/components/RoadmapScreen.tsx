@@ -46,49 +46,46 @@ export default function RoadmapScreen() {
   const [loginRequired, setLoginRequired] = useState(false);
   const pathSegments = window.location.pathname.split("/").filter(Boolean);
   const roadmapSlug = pathSegments[1];
-  const instrumentSlug = roadmapSlug?.split("-")[0];
 
   useEffect(() => {
     let active = true;
 
     async function loadRoadmaps() {
-      if (!instrumentSlug) {
-        const { data: roadmapData, error: roadmapError } = await supabase
-          .from("roadmaps")
-          .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))")
-          .order("title");
+      let instrumentId: number | undefined;
+      const routePrefix = roadmapSlug?.split("-")[0];
+
+      if (routePrefix && /^\d+$/.test(routePrefix)) {
+        instrumentId = Number(routePrefix);
+      } else if (routePrefix) {
+        const { data: instrument, error: instrumentError } = await supabase
+          .from("instruments")
+          .select("id, name")
+          .eq("slug", routePrefix)
+          .maybeSingle();
 
         if (!active) return;
-        if (roadmapError) {
-          setLoadError(roadmapError.message);
-        } else {
-          setRoadmaps((roadmapData ?? []) as Roadmap[]);
+        if (instrumentError) {
+          setLoadError(instrumentError.message);
+          setLoading(false);
+          return;
         }
-        setLoading(false);
-        return;
+        if (instrument) {
+          instrumentId = instrument.id;
+          setInstrumentName(instrument.name);
+        }
       }
 
-      const { data: instrument, error: instrumentError } = await supabase
-        .from("instruments")
-        .select("id, name")
-        .eq("slug", instrumentSlug)
-        .single();
-
-      if (!active) return;
-      if (instrumentError) {
-        setLoadError(instrumentError.message);
-        setLoading(false);
-        return;
-      }
-
-      setInstrumentName(instrument.name);
-
-      const { data: roadmapData, error: roadmapError } = await supabase
+      let roadmapQuery = supabase
         .from("roadmaps")
-        .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))")
-        .eq("instrument_id", instrument.id)
-        .order("position", { referencedTable: "roadmap_steps" });
+        .select("id, title, description, level, roadmap_steps(id, position, title, description, resources(id, title, url, kind))");
+      if (instrumentId !== undefined) {
+        roadmapQuery = roadmapQuery.eq("instrument_id", instrumentId);
+        roadmapQuery = roadmapQuery.order("position", { referencedTable: "roadmap_steps" });
+      } else {
+        roadmapQuery = roadmapQuery.order("instrument_id", { ascending: true });
+      }
 
+      const { data: roadmapData, error: roadmapError } = await roadmapQuery;
       if (!active) return;
       if (roadmapError) {
         setLoadError(roadmapError.message);
