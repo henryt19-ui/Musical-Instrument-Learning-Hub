@@ -433,3 +433,63 @@
   .practice-guide { display:grid; grid-template-columns:1fr; gap:14px; }
   .practice-footer > div { padding:18px; }
 }
+
+
+/* Sprint: persistent library likes and more informative roadmap cards. */
+.legato-roadmap-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 1px solid #ede5f4;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.legato-roadmap-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 5px;
+  background: linear-gradient(90deg, #ffd46e, #ed4b96, #9557d9);
+}
+.legato-roadmap-card:hover {
+  transform: translateY(-3px);
+  border-color: #eab2d0;
+  box-shadow: 0 16px 36px rgba(61,41,99,.13);
+}
+.legato-roadmap-card h3 { min-height: 0; margin: 18px 0 8px; }
+.legato-roadmap-card h3 a:hover { color: #c2175c; }
+.legato-roadmap-card .legato-roadmap-next { margin: 0 0 20px; }
+.legato-roadmap-progress-heading {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  margin-top: auto; margin-bottom: 9px;
+  color: #5c5470; font-size: 12px; font-weight: 600;
+}
+.legato-roadmap-progress-heading strong { color: #c2175c; font-weight: 800; }
+.legato-roadmap-continue {
+  display: inline-flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin-top: 16px; color: #c2175c !important; font-size: 13px; font-weight: 800;
+}
+.legato-roadmap-continue:hover { text-decoration: underline; text-underline-offset: 3px; }
+.legato-resource-icon.sheet_music { background: linear-gradient(135deg, #86b7ed, #9873d4); }
+.legato-resource-icon.practice { background: linear-gradient(135deg, #79d4b8, #3caa91); }
+.legato-resource-copy h3 a:hover { color: #c2175c; text-decoration: underline; }
+.legato-like-button {
+  flex: 0 0 44px; width: 44px; height: 44px; display: flex;
+  align-items: center; justify-content: center; padding: 10px;
+  border: 1px solid #e8deee; border-radius: 50%;
+  background: #f7f3fa; color: #81728d;
+  transition: transform .16s ease, background .16s ease, color .16s ease;
+}
+.legato-like-button svg {
+  width: 23px; height: 23px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round;
+}
+.legato-like-button:hover:not(:disabled) { transform: scale(1.07); background: #fff0f5; color: #c2175c; }
+.legato-like-button.is-liked { background: #ffe5ef; color: #c2175c; border-color: #f3b4cc; }
+.legato-like-button.is-liked svg { fill: currentColor; }
+.legato-like-button:disabled { cursor: wait; opacity: .65; }
+@media (max-width: 600px) {
+  .legato-like-button { flex-basis: 40px; width: 40px; height: 40px; }
+  .legato-roadmap-card .legato-roadmap-next { margin-bottom: 16px; }
+}
