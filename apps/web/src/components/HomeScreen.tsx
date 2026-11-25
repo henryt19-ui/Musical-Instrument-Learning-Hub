@@ -39,6 +39,17 @@ type SuggestedResource = {
   duration_minutes: number | null;
 };
 
+type SpotlightRelation<T> = T | T[] | null;
+
+type SpotlightResource = SuggestedResource & {
+  description: string | null;
+  roadmap_steps: SpotlightRelation<{
+    roadmaps: SpotlightRelation<{
+      instruments: SpotlightRelation<{ name: string }>;
+    }>;
+  }>;
+};
+
 function firstRelation<T>(relation: T | T[] | null | undefined): T | undefined {
   return Array.isArray(relation) ? relation[0] : relation ?? undefined;
 }
@@ -180,6 +191,52 @@ export default function HomeScreen() {
   const [suggestedResources, setSuggestedResources] = useState<SuggestedResource[]>([]);
   const [resourcesLoading, setResourcesLoading] = useState(true);
   const [resourcesError, setResourcesError] = useState<string | null>(null);
+  const [spotlightResource, setSpotlightResource] = useState<SpotlightResource | null>(null);
+  const [spotlightLoading, setSpotlightLoading] = useState(true);
+  const [spotlightError, setSpotlightError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadSpotlight() {
+      // Match the Resources page's catalog, rather than the user's saved items
+      // or the four suggestions for their current roadmap step.
+      const pageSize = 100;
+      const catalog: SpotlightResource[] = [];
+
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await supabase
+          .from("resources")
+          .select("id, title, url, kind, description, source, duration_minutes, roadmap_steps!inner(roadmaps!inner(instruments!inner(name)))")
+          .order("id")
+          .range(offset, offset + pageSize - 1);
+
+        if (!active) return;
+        if (error) throw error;
+
+        const page = (data ?? []) as SpotlightResource[];
+        catalog.push(...page);
+        if (page.length < pageSize) break;
+      }
+
+      // Select once per home-screen mount, not on every React render.
+      if (active && catalog.length > 0) {
+        setSpotlightResource(catalog[Math.floor(Math.random() * catalog.length)]);
+      }
+    }
+
+    loadSpotlight()
+      .catch((error: unknown) => {
+        if (active) setSpotlightError(getErrorMessage(error));
+      })
+      .finally(() => {
+        if (active) setSpotlightLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -298,6 +355,10 @@ export default function HomeScreen() {
       active = false;
     };
   }, [progressLoading, roadmapProgress]);
+
+  const spotlightStep = firstRelation(spotlightResource?.roadmap_steps);
+  const spotlightRoadmap = firstRelation(spotlightStep?.roadmaps);
+  const spotlightInstrument = firstRelation(spotlightRoadmap?.instruments)?.name;
 
   return (
     <main className="mx-auto max-w-6xl px-5 pb-10 sm:px-8">
@@ -459,16 +520,35 @@ export default function HomeScreen() {
         <div>
           <SectionHeading
             title="Spotlight"
-            subtitle="A free resource we love this week"
+            subtitle="Discover a random resource from the learning library"
             color="from-pink-600 to-purple-600"
           />
           <article className="flex min-h-48 flex-col justify-end overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-pink-950 to-pink-700 p-5 text-white shadow-xl">
-            <span className="mb-2 w-fit rounded-full bg-white/20 px-2 py-1 text-[9px]">Sheet music · All instruments</span>
-            <h3 className="text-2xl font-black tracking-tight">IMSLP</h3>
-            <p className="mt-1 text-[10px] text-white/75">A huge free library of public-domain sheet music</p>
-            <a href="https://imslp.org" className="mt-3 w-fit rounded-full border border-white/70 px-3 py-1.5 text-[10px] font-medium transition hover:bg-white hover:text-slate-900">
-              Check it out
-            </a>
+            {spotlightLoading ? (
+              <p className="text-sm text-white/80" role="status">Finding a resource to spotlight...</p>
+            ) : spotlightError ? (
+              <p className="text-sm text-white/80" role="alert">Unable to load the spotlight resource. Try refreshing the page.</p>
+            ) : spotlightResource ? (
+              <>
+                <span className="mb-2 w-fit rounded-full bg-white/20 px-2 py-1 text-[9px]">
+                  {resourceKindLabel(spotlightResource.kind)}
+                  {spotlightInstrument && ` · ${spotlightInstrument}`}
+                </span>
+                <h3 className="break-words text-2xl font-black tracking-tight">{spotlightResource.title}</h3>
+                {spotlightResource.description?.trim() && (
+                  <p className="mt-1 break-words text-[10px] text-white/75">{spotlightResource.description}</p>
+                )}
+                <p className="mt-1 break-words text-[10px] text-white/75">
+                  {resourceSource(spotlightResource)}
+                  {spotlightResource.duration_minutes !== null && ` · ${spotlightResource.duration_minutes} min`}
+                </p>
+                <a href={spotlightResource.url} target="_blank" rel="noreferrer" className="mt-3 w-fit rounded-full border border-white/70 px-3 py-1.5 text-[10px] font-medium transition hover:bg-white hover:text-slate-900">
+                  Check it out
+                </a>
+              </>
+            ) : (
+              <p className="text-sm text-white/80" role="status">No resources are available to spotlight yet.</p>
+            )}
           </article>
         </div>
       </section>
